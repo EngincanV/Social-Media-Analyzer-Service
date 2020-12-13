@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.ts",
   "scripts": {
-    "start": "nodemon ./bin/www",
+    "start": "nodemon app.ts",
     "build": "tsc --project ./"
   },
   "repository": {
@@ -19,7 +19,11 @@
   },
   "homepage": "https://github.com/EngincanV/Social-Media-Analyzer-Service#readme",
   "dependencies": {
-    "express": "4.17.1"
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.5",
+    "express": "4.17.1",
+    "http-errors": "^1.8.0",
+    "instagram-web-api": "^2.2.2"
   },
   "devDependencies": {
     "@types/compression": "^1.7.0",

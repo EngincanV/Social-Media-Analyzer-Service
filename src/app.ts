@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 
 const app = express();
+const PORT: number = 3000;
 
 app.use(compression());
 app.use(express.json());
@@ -18,5 +19,7 @@ app.get("/", (req, res) => {
 app.use((req, res, next) => {
     next(createError(404));
 });
+
+app.listen(PORT);
 
 export default app;
