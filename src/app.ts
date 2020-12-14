@@ -1,11 +1,14 @@
-import express from 'express';
-import createError from "http-errors";
-import cookieParser from "cookie-parser";
-import compression from "compression";
-import accountRouter from "./routes/account";
-import verifyToken from "./middlewares/verify-token";
+const express = require("express");
+const createError = require("http-errors") ;
+const cookieParser = require("cookie-parser");
+const compression = require("compression");
+const verifyToken = require("./middlewares/verify-token");
 
-const app = express();
+//routes
+const accountRouter = require("./routes/account");
+const instagramRouter = require("./routes/instagram");
+
+const app: any = express();
 const PORT: number = 3000;
 
 app.use(compression());
@@ -16,10 +19,11 @@ app.use(cookieParser());
 //Bearer Authorization
 app.use("/api", verifyToken);
 
-app.get("/account", accountRouter);
+app.use("/account", accountRouter);
+app.use("/api/instagram", instagramRouter);
 
 //catch 404 and forward to error handler 
-app.use((req, res, next) => {
+app.use((req: any, res: any, next: any) => {
     next(createError(404));
 });
 

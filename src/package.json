@@ -19,21 +19,17 @@
   },
   "homepage": "https://github.com/EngincanV/Social-Media-Analyzer-Service#readme",
   "dependencies": {
-    "@types/bcrypt": "^3.0.0",
-    "@types/jsonwebtoken": "^8.5.0",
-    "@types/mysql": "^2.15.16",
+    "bcrypt": "^5.0.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "express": "4.17.1",
     "http-errors": "^1.8.0",
-    "instagram-web-api": "^2.2.2"
+    "instagram-web-api": "^2.2.2",
+    "jsonwebtoken": "^8.5.1",
+    "mysql": "^2.18.1"
   },
   "devDependencies": {
-    "@types/compression": "^1.7.0",
-    "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.9",
-    "@types/http-errors": "^1.8.0",
-    "@types/morgan": "^1.9.2",
     "@types/node": "^14.14.13",
     "nodemon": "^2.0.6",
     "ts-node": "^9.1.1",
