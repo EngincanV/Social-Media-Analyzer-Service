@@ -1,7 +1,7 @@
 import express from "express";
-import mysql from "mysql";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+const mysql = require("mysql"); 
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 import dbConfig from "../config/dbconfig";
 import hashConfig from "../config/hashconfig";
@@ -24,13 +24,13 @@ router.post('/login', async (req, res, next) => {
     const { username, password } = req.body;
 
     let sql = `SELECT * FROM accounts WHERE Username = "${username}"`
-    db.connect((err) => {
+    db.connect((err: any) => {
         if (err) {
             console.log('Cannot connect db !!');
             throw err;
         }
         else {
-            db.query(sql, async (err, results) => {
+            db.query(sql, async (err: any, results: any) => {
                 if (err) {
                     res.send({ 'success': 'false', 'message': 'Could not connect db' });
                 }
@@ -54,7 +54,7 @@ router.post('/login', async (req, res, next) => {
                     res.send({ success: false, message: "User not found" });
                 }
             });
-            db.end((err) => {
+            db.end((err: any) => {
                 if (err) throw err;
                 else console.log('Closing connection');
             })
@@ -81,7 +81,7 @@ router.post('/register', async (req, res, next) => {
     var hashedPassword: string = await hashPasswordAsync(password);
 
     let sql = `INSERT INTO accounts (Name, Surname, Username, Email, Password) VALUES ("${name}", "${surname}","${username}","${email}","${hashedPassword}")`;
-    db.connect((err) => {
+    db.connect((err: any) => {
         if (err) {
             console.log('Cannot connect database');
             throw err;
@@ -90,7 +90,7 @@ router.post('/register', async (req, res, next) => {
             if (isUserExist) {
                 res.send({ message: "Username already exist, please choose a new username" });
             }
-            db.query(sql, (err, results) => {
+            db.query(sql, (err: any, results: any) => {
                 if (err) {
                     res.send({ 'success': 'false', 'message': 'You must change username' });
                 }
@@ -98,7 +98,7 @@ router.post('/register', async (req, res, next) => {
                     res.send(results);
                 }
             });
-            db.end((err) => {
+            db.end((err: any) => {
                 if (err) throw err;
                 else console.log("Closing connection");
             });
@@ -108,15 +108,15 @@ router.post('/register', async (req, res, next) => {
 
 function isUsernameExist(username: string): any {
     const db = mysql.createConnection(dbConfig);
-    let command = `SELECT * FROM accounts WHERE Username = "${username}"`;
+    let command: string = `SELECT * FROM accounts WHERE Username = "${username}"`;
 
-    db.connect((err) => {
+    db.connect((err: any) => {
         if (err) {
             console.log('Cannot connect database');
             throw err;
         }
 
-        db.query(command, (err, results) => {
+        db.query(command, (err: any, results: any) => {
             if (err)
                 throw err;
 
@@ -131,7 +131,7 @@ const hashPasswordAsync = async (password: string): Promise<any> => {
     const { saltRounds } = hashConfig;
 
     const hashedPassword = await new Promise((resolve, reject) => {
-        bcrypt.hash(password, saltRounds, (err, hash) => {
+        bcrypt.hash(password, saltRounds, (err: any, hash: any) => {
             if (err) reject(err);
 
             resolve(hash);
@@ -144,7 +144,7 @@ const hashPasswordAsync = async (password: string): Promise<any> => {
 const comparePasswordAsync = async (password: string, hash: string) => {
     try {
         const isPasswordSame = await new Promise((resolve, reject) => {
-            bcrypt.compare(password, hash, function (err, result) {
+            bcrypt.compare(password, hash, function (err: any, result: any) {
                 if (err) reject(err);
     
                 resolve(result);
@@ -158,4 +158,4 @@ const comparePasswordAsync = async (password: string, hash: string) => {
     }
 }
 
-export default router;
+module.exports = router;
