@@ -11,6 +11,12 @@ const instagramRouter = require("./routes/instagram");
 const app: any = express();
 const PORT: number = 3000;
 
+const expressSwagger = require("express-swagger-generator")(app);
+const swaggerOptions = require("./config/swaggerconfig");
+
+//swagger documentation
+expressSwagger(swaggerOptions);
+
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
