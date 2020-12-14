@@ -26,7 +26,6 @@ router.post('/login', async (req, res, next) => {
     let sql = `SELECT * FROM accounts WHERE Username = "${username}"`
     db.connect((err: any) => {
         if (err) {
-            console.log('Cannot connect db !!');
             throw err;
         }
         else {
@@ -56,7 +55,6 @@ router.post('/login', async (req, res, next) => {
             });
             db.end((err: any) => {
                 if (err) throw err;
-                else console.log('Closing connection');
             })
         }
     })
@@ -83,7 +81,6 @@ router.post('/register', async (req, res, next) => {
     let sql = `INSERT INTO accounts (Name, Surname, Username, Email, Password) VALUES ("${name}", "${surname}","${username}","${email}","${hashedPassword}")`;
     db.connect((err: any) => {
         if (err) {
-            console.log('Cannot connect database');
             throw err;
         }
         else {
@@ -100,7 +97,6 @@ router.post('/register', async (req, res, next) => {
             });
             db.end((err: any) => {
                 if (err) throw err;
-                else console.log("Closing connection");
             });
         }
     })
