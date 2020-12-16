@@ -2,4 +2,8 @@ language: node_js
 node_js:
   - '14.15.1'
 script:
+  - npm install
   - npm run build
+cache:
+  directories:
+    - "node_modules"
