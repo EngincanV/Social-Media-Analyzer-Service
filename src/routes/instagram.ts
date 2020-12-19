@@ -31,7 +31,7 @@ router.post('/followers', async function (req: any, res: any) {
   const { username, password } = req.body;
 
   await instagramService.followerInfo(username, password)
-    .then((data: any) => res.json(data));
+    .then((data: object) => res.json(data));
 });
 
 
@@ -47,7 +47,7 @@ router.post("/followings", async function (req: any, res: any) {
   const { username, password } = req.body;
 
   await instagramService.followingInfo(username, password)
-    .then((data: any) => res.json(data));
+    .then((data: object) => res.json(data));
 });
 
 
@@ -65,7 +65,8 @@ router.post("/not-followed-users", async function (req: any, res: any) {
 
   await instagramService.notToBeFollowed(username, password)
     .then((data: any) => userInfo.notToBeFollowed = data)
-  res.send(userInfo);
+  
+    res.send(userInfo);
 });
 
 
@@ -78,8 +79,6 @@ router.post("/not-followed-users", async function (req: any, res: any) {
  */
 router.get("/userInfoByUsername/:username", async function (req: any, res: any) {
   const { username } = req.params;
-
-  console.log(username);
 
   await instagramService.getUserInfoByUsername(username)
     .then((data: any) => res.json(data));

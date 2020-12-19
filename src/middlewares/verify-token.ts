@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 import jwtConfig from "../config/jwt-secret-key";
 
 const verifyToken = (req: any, res: any, next: any) => {
-    const token = req.headers['authorization'];
+    const token: string = req.headers['authorization'];
 
     if(token) {
         jwt.verify(token, jwtConfig.secretKey, (err: any, decoded: any) => {

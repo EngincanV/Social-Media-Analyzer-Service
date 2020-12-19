@@ -97,7 +97,7 @@ const getUserInfoByUsername = async (searchUsername: string) => {
             };
         });
 
-    const userId = userInfo.userId.toString();
+    const userId: string = userInfo.userId.toString();
     
     const followings = await client.getFollowings({ userId })
         .then((res: any) => res.data);

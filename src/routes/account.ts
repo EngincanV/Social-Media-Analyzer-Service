@@ -23,7 +23,7 @@ router.post('/login', async (req, res, next) => {
     const db = mysql.createConnection(dbConfig);
     const { username, password } = req.body;
 
-    let sql = `SELECT * FROM accounts WHERE Username = "${username}"`
+    let sql: string = `SELECT * FROM accounts WHERE Username = "${username}"`
     db.connect((err: any) => {
         if (err) {
             throw err;
@@ -36,10 +36,10 @@ router.post('/login', async (req, res, next) => {
                 else if (results.length > 0) {
                     var hashedPassword: string = results[0].Password;
 
-                    const isSuccess = await comparePasswordAsync(password, hashedPassword);
+                    const isSuccess: boolean = await comparePasswordAsync(password, hashedPassword);
 
                     if (isSuccess) {
-                        const token = jwt.sign({
+                        const token: string = jwt.sign({
                             exp: Math.floor(Date.now() / 1000) + (60 * 60), //1 hour
                             data: { username: results[0].Username }
                         }, jwtConfig.secretKey);
@@ -78,7 +78,8 @@ router.post('/register', async (req, res, next) => {
     var isUserExist: boolean = isUsernameExist(username);
     var hashedPassword: string = await hashPasswordAsync(password);
 
-    let sql = `INSERT INTO accounts (Name, Surname, Username, Email, Password) VALUES ("${name}", "${surname}","${username}","${email}","${hashedPassword}")`;
+    let sql: string = `INSERT INTO accounts (Name, Surname, Username, Email, Password) VALUES ("${name}", "${surname}","${username}","${email}","${hashedPassword}")`;
+    
     db.connect((err: any) => {
         if (err) {
             throw err;
@@ -137,9 +138,9 @@ const hashPasswordAsync = async (password: string): Promise<any> => {
     return hashedPassword;
 }
 
-const comparePasswordAsync = async (password: string, hash: string) => {
+const comparePasswordAsync = async (password: string, hash: string): Promise<boolean> => {
     try {
-        const isPasswordSame = await new Promise((resolve, reject) => {
+        const isPasswordSame: boolean = await new Promise((resolve, reject) => {
             bcrypt.compare(password, hash, function (err: any, result: any) {
                 if (err) reject(err);
     
