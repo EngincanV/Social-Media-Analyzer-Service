@@ -7,6 +7,7 @@ const verifyToken = require("./middlewares/verify-token");
 //routes
 const accountRouter = require("./routes/account");
 const instagramRouter = require("./routes/instagram");
+const hintRouter = require("./routes/hints");
 
 const app: any = express();
 const PORT: number = 3000;
@@ -25,6 +26,7 @@ app.use(cookieParser());
 //Bearer Authorization
 app.use("/api", verifyToken);
 
+app.use("/", hintRouter);
 app.use("/account", accountRouter);
 app.use("/api/instagram", instagramRouter);
 
