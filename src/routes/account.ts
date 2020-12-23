@@ -23,7 +23,8 @@ router.post('/login', async (req, res, next) => {
     const db = mysql.createConnection(dbConfig);
     const { username, password } = req.body;
 
-    let sql: string = `SELECT * FROM accounts WHERE Username = "${username}"`
+    let sql: string = `SELECT * FROM users WHERE username = "${username}"`;
+
     db.connect((err: any) => {
         if (err) {
             throw err;
@@ -34,17 +35,20 @@ router.post('/login', async (req, res, next) => {
                     res.send({ 'success': 'false', 'message': 'Could not connect db' });
                 }
                 else if (results.length > 0) {
-                    var hashedPassword: string = results[0].Password;
+                    console.log(results);
+                    var hashedPassword: string = results[0].password;
 
                     const isSuccess: boolean = await comparePasswordAsync(password, hashedPassword);
 
                     if (isSuccess) {
+                        console.log(results);
+
                         const token: string = jwt.sign({
                             exp: Math.floor(Date.now() / 1000) + (60 * 60), //1 hour
-                            data: { username: results[0].Username }
+                            data: { id: results[0].id, username: results[0].username }
                         }, jwtConfig.secretKey);
 
-                        res.send({ 'success': 'true', token: token });
+                        res.send({ 'success': 'true', token });
                     }
 
                     res.send({ success: false, message: "Given password is wrong" });
@@ -63,7 +67,7 @@ router.post('/login', async (req, res, next) => {
 /**
  * @route POST /account/register
  * @group Account - Operations about user
- * @param {string} name
+ * @param {string} firstname
  * @param {string} surname
  * @param {string} username
  * @param {string} email - eg: admin@gmail.com
@@ -73,12 +77,12 @@ router.post('/login', async (req, res, next) => {
  */
 router.post('/register', async (req, res, next) => {
     const db = mysql.createConnection(dbConfig);
-    const { name, surname, username, email, password } = req.body;
+    const { firstname, surname, username, email, password } = req.body;
 
     var isUserExist: boolean = isUsernameExist(username);
     var hashedPassword: string = await hashPasswordAsync(password);
 
-    let sql: string = `INSERT INTO accounts (Name, Surname, Username, Email, Password) VALUES ("${name}", "${surname}","${username}","${email}","${hashedPassword}")`;
+    let sql: string = `INSERT INTO users (firstname, surname, username, email, password) VALUES ("${firstname}", "${surname}","${username}","${email}","${hashedPassword}")`;
     
     db.connect((err: any) => {
         if (err) {
@@ -105,7 +109,7 @@ router.post('/register', async (req, res, next) => {
 
 function isUsernameExist(username: string): any {
     const db = mysql.createConnection(dbConfig);
-    let command: string = `SELECT * FROM accounts WHERE Username = "${username}"`;
+    let command: string = `SELECT * FROM users WHERE username = "${username}"`;
 
     db.connect((err: any) => {
         if (err) {
