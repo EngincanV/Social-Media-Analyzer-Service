@@ -35,14 +35,11 @@ router.post('/login', async (req, res, next) => {
                     res.send({ 'success': 'false', 'message': 'Could not connect db' });
                 }
                 else if (results.length > 0) {
-                    console.log(results);
                     var hashedPassword: string = results[0].password;
 
                     const isSuccess: boolean = await comparePasswordAsync(password, hashedPassword);
 
                     if (isSuccess) {
-                        console.log(results);
-
                         const token: string = jwt.sign({
                             exp: Math.floor(Date.now() / 1000) + (60 * 60), //1 hour
                             data: { id: results[0].id, username: results[0].username }
