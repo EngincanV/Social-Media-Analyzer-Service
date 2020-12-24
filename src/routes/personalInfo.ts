@@ -8,6 +8,19 @@ const { getUserId } = require("../helpers/userInfo");
 
 const router = express();
 
+router.get("/", async (req: any, res: any) => {
+    const token: string = req.headers['authorization'];
+    const userId: number = getUserId(token);
+
+    if (userId === 0) {
+        res.end({ status: false, message: "User could not found." });
+    }
+
+    const userInfo = await getUserInfoByUserIdAsync(userId);
+
+    res.json({ userInfo });
+});
+
 /**
  * @route POST /personal-info/change-password
  * @group Personal Info - Personal Info
@@ -165,6 +178,31 @@ const updateUserInfosAsync = async (firstname: string, surname: string, email: s
                 resolve(results);
             });
 
+            db.end((err: any) => {
+                if (err)
+                    reject(err);
+            });
+        });
+    });
+}
+
+const getUserInfoByUserIdAsync = async (userId: number) => {
+    const db = mysql.createConnection(dbConfig);
+
+    return new Promise((resolve: any, reject: any) => {
+        db.connect(async (err: any) => {
+            if (err)
+                reject(err);
+    
+            let sqlCommand: string = `SELECT firstname, surname, username, email FROM users WHERE id = ${userId}`;
+    
+            db.query(sqlCommand, async (err: any, results: any) => {
+                if (err)
+                    reject(err);
+    
+                resolve(results[0]);
+            });
+    
             db.end((err: any) => {
                 if (err)
                     reject(err);
