@@ -34,7 +34,29 @@ router.post("/change-password", async (req: any, res: any) => {
     await changePasswordAsync(newPassword, userId)
         .then(() => res.json({ status: true, message: "User password has been changed successfully." }))
         .catch((err) => res.json({ status: false, error: err }));
+});
 
+/**
+ * @route POST /personal-info/edit
+ * @group Personal Info - Personal Info
+ * @param {string} firstname
+ * @param {string} lastname
+ * @param {string} email
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - Unexpected error
+ */
+router.post("/edit", async (req: any, res: any) => {
+    const token: string = req.headers['authorization'];
+    const userId: number = getUserId(token);
+    const { firstname, surname, email } = req.body;
+
+    if (userId === 0) {
+        res.end({ status: false, message: "User could not found." });
+    }
+
+    await updateUserInfosAsync(firstname, surname, email, userId)
+        .then(() => res.json({ status: true, message: "User infos have been changed successfully." }))
+        .catch(err => res.json({ status: false, error: err }));
 });
 
 const isUserPasswordCorrectAsync = async (password: string, userId: number): Promise<boolean> => {
@@ -61,14 +83,14 @@ const isUserPasswordCorrectAsync = async (password: string, userId: number): Pro
 
                 db.end((err: any) => {
                     if (err)
-                     reject(err);
+                        reject(err);
                 });
             }
         });
     });
 }
 
-const changePasswordAsync = (password: string, userId: number): Promise<any> => {
+const changePasswordAsync = async (password: string, userId: number): Promise<any> => {
     const db = mysql.createConnection(dbConfig);
 
     return new Promise((resolve: any, reject: any) => {
@@ -98,10 +120,10 @@ const comparePasswordAsync = async (password: string, hash: string): Promise<boo
     try {
         const isPasswordSame: boolean = await new Promise((resolve, reject) => {
             bcrypt.compare(password, hash, function (err: any, result: any) {
-                if (err) 
+                if (err)
                     reject(err);
 
-                resolve(result);  
+                resolve(result);
             });
         });
 
@@ -124,6 +146,31 @@ const hashPasswordAsync = async (password: string): Promise<any> => {
     });
 
     return hashedPassword;
+}
+
+const updateUserInfosAsync = async (firstname: string, surname: string, email: string, userId: number) => {
+    const db = mysql.createConnection(dbConfig);
+
+    return new Promise((resolve: any, reject: any) => {
+        db.connect(async (err: any) => {
+            if (err)
+                reject(err);
+
+            let sqlCommand: string = `UPDATE users SET firstname = "${firstname}", surname = "${surname}", email = "${email}" WHERE id=${userId}`;
+
+            db.query(sqlCommand, async (err: any, results: any) => {
+                if (err)
+                    reject(err);
+
+                resolve(results);
+            });
+
+            db.end((err: any) => {
+                if (err)
+                    reject(err);
+            });
+        });
+    });
 }
 
 module.exports = router;
