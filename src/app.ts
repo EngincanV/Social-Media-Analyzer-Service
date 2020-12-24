@@ -9,6 +9,7 @@ const accountRouter = require("./routes/account");
 const instagramRouter = require("./routes/instagram");
 const hintRouter = require("./routes/hints");
 const feedbackRouter = require("./routes/feedback");
+const personalInfoRouter = require("./routes/personalInfo");
 
 const app: any = express();
 const PORT: number = 3000;
@@ -31,6 +32,7 @@ app.use("/", hintRouter);
 app.use("/account", accountRouter);
 app.use("/api/instagram", instagramRouter);
 app.use("/api/feedback", feedbackRouter);
+app.use("/api/personal-info", personalInfoRouter);
 
 //catch 404 and forward to error handler 
 app.use((req: any, res: any, next: any) => {
