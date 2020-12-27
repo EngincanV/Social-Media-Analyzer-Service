@@ -3,6 +3,7 @@ const mysql = require("mysql");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const { getUserId } = require("../helpers/userInfo");
 import dbConfig from "../config/dbconfig";
 import hashConfig from "../config/hashconfig";
 import jwtConfig from "../config/jwt-secret-key";
@@ -102,6 +103,45 @@ router.post('/register', async (req, res, next) => {
             });
         }
     })
+});
+
+/**
+ * @route POST /account/add-profile-photo
+ * @group Account - Operations about user
+ * @param {string} profilePhoto
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - Unexpected error
+ */
+router.post("/add-profile-photo", async (req: any, res: any) => {
+    const db = mysql.createConnection(dbConfig);
+    const token: string = req.headers['authorization'];
+    const userId: number = getUserId(token);
+    let profilePhoto: string = req.body.profilePhoto;
+
+    if (userId === 0) {
+        res.end({ status: false });
+    }
+
+    let sqlCommand: string = `UPDATE users SET profilePhoto = "${profilePhoto}" WHERE id = ${userId}`;
+    
+    db.connect((err: any) => {
+        if (err) {
+            throw err;
+        }
+        else {
+            db.query(sqlCommand, (err: any, results: any) => {
+                if (err) {
+                    res.send({ 'success': false, message: "Something went wrong when tried to add profile photo" });
+                }
+                else {
+                    res.send(results);
+                }
+            });
+            db.end((err: any) => {
+                if (err) throw err;
+            });
+        }
+    }) 
 });
 
 function isUsernameExist(username: string): any {
