@@ -22,6 +22,7 @@ expressSwagger(swaggerOptions);
 
 app.use(compression());
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 

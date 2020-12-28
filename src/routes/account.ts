@@ -1,7 +1,34 @@
 import express from "express";
-const mysql = require("mysql"); 
+const mysql = require("mysql");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
+
+//photo storage
+const storage = multer.diskStorage({
+    destination: function (req: any, file: any, callback: any) {
+        callback(null, "./uploads/");
+    },
+    filename: function (req: any, file: any, callback: any) {
+        callback(null, file.originalname);
+    }
+});
+
+const fileFilter = (req: any, file: any, callback: any) => {
+    if(file.mimetype === "image/jpg" || file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+        callback(null, true);
+    } else {
+        callback(null, false);
+    }
+}
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1024 * 1024 * 5 //5mb
+    },
+    fileFilter: fileFilter
+});
 
 const { getUserId } = require("../helpers/userInfo");
 import dbConfig from "../config/dbconfig";
@@ -81,7 +108,7 @@ router.post('/register', async (req, res, next) => {
     var hashedPassword: string = await hashPasswordAsync(password);
 
     let sql: string = `INSERT INTO users (firstname, surname, username, email, password) VALUES ("${firstname}", "${surname}","${username}","${email}","${hashedPassword}")`;
-    
+
     db.connect((err: any) => {
         if (err) {
             throw err;
@@ -112,18 +139,18 @@ router.post('/register', async (req, res, next) => {
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - Unexpected error
  */
-router.post("/add-profile-photo", async (req: any, res: any) => {
+router.post("/add-profile-photo", upload.single("profilePhoto"), (req: any, res: any) => {
     const db = mysql.createConnection(dbConfig);
     const token: string = req.headers['authorization'];
     const userId: number = getUserId(token);
-    let profilePhoto: string = req.body.profilePhoto;
-
+    let profilePhoto: string = req.file.path.replace("\\", "/");
+    
     if (userId === 0) {
-        res.end({ status: false });
+        res.end({ status: false, message: "User could not found" });
     }
 
     let sqlCommand: string = `UPDATE users SET profilePhoto = "${profilePhoto}" WHERE id = ${userId}`;
-    
+
     db.connect((err: any) => {
         if (err) {
             throw err;
@@ -184,7 +211,7 @@ const comparePasswordAsync = async (password: string, hash: string): Promise<boo
         const isPasswordSame: boolean = await new Promise((resolve, reject) => {
             bcrypt.compare(password, hash, function (err: any, result: any) {
                 if (err) reject(err);
-    
+
                 resolve(result);
             });
         });

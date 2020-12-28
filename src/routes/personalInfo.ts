@@ -194,7 +194,7 @@ const getUserInfoByUserIdAsync = async (userId: number) => {
             if (err)
                 reject(err);
     
-            let sqlCommand: string = `SELECT firstname, surname, username, email FROM users WHERE id = ${userId}`;
+            let sqlCommand: string = `SELECT firstname, surname, username, email, profilePhoto FROM users WHERE id = ${userId}`;
     
             db.query(sqlCommand, async (err: any, results: any) => {
                 if (err)
