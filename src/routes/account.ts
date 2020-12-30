@@ -4,6 +4,9 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 
+//enums
+const SubscriptionTypes = require("../constants/SubscriptionType");
+
 //photo storage
 const storage = multer.diskStorage({
     destination: function (req: any, file: any, callback: any) {
@@ -107,8 +110,8 @@ router.post('/register', async (req, res, next) => {
     var isUserExist: boolean = isUsernameExist(username);
     var hashedPassword: string = await hashPasswordAsync(password);
 
-    let sql: string = `INSERT INTO users (firstname, surname, username, email, password) VALUES ("${firstname}", "${surname}","${username}","${email}","${hashedPassword}")`;
-
+    let sqlCommand: string = `INSERT INTO users (firstname, surname, username, email, password) VALUES ("${firstname}", "${surname}","${username}","${email}","${hashedPassword}")`;
+    
     db.connect((err: any) => {
         if (err) {
             throw err;
@@ -117,11 +120,14 @@ router.post('/register', async (req, res, next) => {
             if (isUserExist) {
                 res.send({ message: "Username already exist, please choose a new username" });
             }
-            db.query(sql, (err: any, results: any) => {
+            db.query(sqlCommand, (err: any, results: any) => {
                 if (err) {
                     res.send({ 'success': 'false', 'message': 'You must change username' });
                 }
                 else {
+                    var userId = results.insertId;
+                    addUserToSubscription(userId);
+
                     res.send(results);
                 }
             });
@@ -170,6 +176,57 @@ router.post("/add-profile-photo", upload.single("profilePhoto"), (req: any, res:
         }
     }) 
 });
+
+function addUserToSubscription(userId: number) {
+    const db = mysql.createConnection(dbConfig);
+    var date = new Date();
+    var subscriptionStartDate = date.toISOString().split("T")[0];
+
+    date.setMonth(date.getMonth() + 6);
+    var subscriptionEndDate: string = date.toISOString().split("T")[0];
+    var subscriptionPrice: number = getSubscriptionPriceById(SubscriptionTypes.Free);
+    var subscriptionMonth = 6; //TODO: get this from user, after MVP?
+    var totalAmount = subscriptionPrice * subscriptionMonth;
+
+    let sqlCommand: string = `INSERT INTO subscriptions (userId, subscriptionTypeId, subscriptionStartDate, subscriptionEndDate, subscriptionMonthCount, totalAmount) VALUES (${userId}, ${SubscriptionTypes.Free}, "${subscriptionStartDate}", "${subscriptionEndDate}", ${subscriptionMonth}, ${totalAmount})`;
+
+    db.connect((err: any) => {
+        if (err) {
+            console.log('Cannot connect database');
+            throw err;
+        }
+
+        db.query(sqlCommand, (err: any, results: any) => {
+            if (err)
+                throw err;
+        });
+    });
+}
+
+function getSubscriptionPriceById(subcriptionId: number): number {
+    const db = mysql.createConnection(dbConfig);
+
+    let sqlCommand: string = `SELECT price FROM subscriptionTypes WHERE id = ${subcriptionId}`;
+    console.log(sqlCommand)
+
+    db.connect((err: any) => {
+        if(err) {
+            console.log("Cannot connect db");
+            throw err;
+        }
+
+        db.query(sqlCommand, (err: any, results: any) => {
+            if (err)
+                throw err;
+    
+            const price = results[0].price;
+
+            return price;
+        });
+    });
+
+    return 0;
+}
 
 function isUsernameExist(username: string): any {
     const db = mysql.createConnection(dbConfig);
