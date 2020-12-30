@@ -4,6 +4,9 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 
+//services
+const { addUserToSubscription } = require("../services/SubscriptionService");
+
 //photo storage
 const storage = multer.diskStorage({
     destination: function (req: any, file: any, callback: any) {
@@ -107,8 +110,8 @@ router.post('/register', async (req, res, next) => {
     var isUserExist: boolean = isUsernameExist(username);
     var hashedPassword: string = await hashPasswordAsync(password);
 
-    let sql: string = `INSERT INTO users (firstname, surname, username, email, password) VALUES ("${firstname}", "${surname}","${username}","${email}","${hashedPassword}")`;
-
+    let sqlCommand: string = `INSERT INTO users (firstname, surname, username, email, password) VALUES ("${firstname}", "${surname}","${username}","${email}","${hashedPassword}")`;
+    
     db.connect((err: any) => {
         if (err) {
             throw err;
@@ -117,11 +120,14 @@ router.post('/register', async (req, res, next) => {
             if (isUserExist) {
                 res.send({ message: "Username already exist, please choose a new username" });
             }
-            db.query(sql, (err: any, results: any) => {
+            db.query(sqlCommand, (err: any, results: any) => {
                 if (err) {
                     res.send({ 'success': 'false', 'message': 'You must change username' });
                 }
                 else {
+                    var userId = results.insertId;
+                    addUserToSubscription(userId);
+
                     res.send(results);
                 }
             });
