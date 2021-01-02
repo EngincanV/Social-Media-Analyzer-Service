@@ -1,5 +1,7 @@
+import refreshDataService from "../services/RefreshDataService";
 const express = require('express');
 const router = express.Router();
+const { getUserId } = require("../helpers/userInfo");
 
 const instagramService = require("../services/instagramService");
 
@@ -14,10 +16,15 @@ const instagramService = require("../services/instagramService");
 router.post('/user-info', async function (req: any, res: any) {
   const { username, password } = req.body;
 
-  await instagramService.getUserInfo(username, password)
-    .then((data: object) => res.json(data));
-});
+  const token: string = req.headers['authorization'];
+  const userId: number = getUserId(token);
 
+  await refreshDataService.refreshDataManagerAsync(userId, username, password);
+
+  await instagramService.getUserInfo(username, password)
+    .then((data: object) => res.json(data))
+    .catch((err: any) => res.json({ err: err.error.message }));
+});
 
 /**
  * @route POST /followers

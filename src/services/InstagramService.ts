@@ -78,10 +78,8 @@ const getUserInfoByUsername = async (searchUsername: string) => {
     let userInfo: IUserInfo = { bio: "", followers_count: 0, followings_count: 0, full_name: "", userId: 0, is_private: false, profile_pic_url: "", notToBeFollowed: [], post_count: 0 };
     let notToBeFollowedUsers = [];
 
-    //projehesap bilgileri ile fake login
-    await client.login(USERNAME, PASSWORD);
+    await client.login(USERNAME, PASSWORD); 
 
-    //get user page infos
     await client.getUserByUsername({ username: searchUsername })
         .then(({ biography, edge_followed_by, edge_follow, full_name, id, is_private, profile_pic_url, edge_owner_to_timeline_media }: any) => {
             userInfo = {
@@ -120,4 +118,9 @@ const getUserInfoByUsername = async (searchUsername: string) => {
     return userInfo;
 };
 
-module.exports = { getUserInfo, followerInfo, followingInfo, notToBeFollowed, getUserInfoByUsername };
+const getUserInstagramStats = async (username: string, password: string) => {
+    const followerCount = 5;//TODO: followers count will be get from ig service
+    return followerCount;
+};
+
+module.exports = { getUserInfo, followerInfo, followingInfo, notToBeFollowed, getUserInfoByUsername, getUserInstagramStats };
