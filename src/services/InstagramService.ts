@@ -1,3 +1,4 @@
+import { IgApiClient } from "instagram-private-api";
 const Instagram = require("instagram-web-api");
 
 const getUserInfo = async (username: string, password: string) => {
@@ -11,49 +12,56 @@ const getUserInfo = async (username: string, password: string) => {
 };
 
 const followerInfo = async (username: string, password: string) => {
-    const client = new Instagram({ username, password });
+    const ig = new IgApiClient();
+    ig.state.generateDevice(username);
+    
+    const auth = await ig.account.login(username, password);
+    const followers = ig.feed.accountFollowers(auth.pk);
+    const items = await followers.items();
 
-    const user = await client.login(username, password);
-    const userId = user.userId;
-
-    const result = await client.getFollowers({ userId });
-
-    return result;
+    return items;
 };
 
 const followingInfo = async (username: string, password: string) => {
-    const client = new Instagram({ username, password });
+    const ig = new IgApiClient();
+    ig.state.generateDevice(username);
+    
+    const auth = await ig.account.login(username, password);
+    const followings = ig.feed.accountFollowing(auth.pk);
+    const items = await followings.items();
 
-    const user = await client.login(username, password);
-    const userId = user.userId;
-
-    const result = await client.getFollowings({ userId });
-
-    return result;
+    return items;
 }
 
+//TODO: fix this method
 const notToBeFollowed = async (username: string, password: string) => {
-    const client = new Instagram({ username, password });
-    let notToBeFollowedUsers = [];
+    const ig = new IgApiClient();
+    ig.state.generateDevice(username);
 
-    const user = await client.login(username, password);
-    const userId = user.userId;
+    const auth = await ig.account.login(username, password);
+    const followers = ig.feed.accountFollowers(auth.pk);
+    const followersArr = await followers.items();
+    
+    const followings = ig.feed.accountFollowing(auth.pk);
+    const followingsArr = await followings.items();
+    
+    let notToBeFollowedUsers: any[] = [];
 
-    const followings = await client.getFollowings({ userId })
-        .then((res: any) => res.data);
-
-    const followers = await client.getFollowers({ userId })
-        .then((res: any) => res.data);
-
-    notToBeFollowedUsers = followings;
-
-    for (let i = 0; i < followings.length; i++) {
-        for (let j = 0; j < followers.length; j++) {
-            if (followings[i].id === followers[j].id) {
-                notToBeFollowedUsers.splice(i, 1);
-            }
+    followersArr.forEach((value) => {
+        if(followingsArr.find(x => x.username == value.username) === undefined) {
+            notToBeFollowedUsers.push(value);
         }
-    }
+    })
+
+    // console.log(followersArr)
+
+    // for (let i = 0; i < followingsArr.length; i++) {
+    //     for (let j = 0; j < followersArr.length; j++) {
+    //         if(followingsArr[i].pk === followersArr[j].pk) {
+    //             notToBeFollowedUsers.splice(i, 1);
+    //         }
+    //     }
+    // }
 
     return notToBeFollowedUsers;
 };
@@ -120,4 +128,15 @@ const getUserInfoByUsername = async (searchUsername: string) => {
     return userInfo;
 };
 
-module.exports = { getUserInfo, followerInfo, followingInfo, notToBeFollowed, getUserInfoByUsername };
+const getUserInstagramStats = async (username: string, password: string) => {
+    const ig = new IgApiClient();
+    ig.state.generateDevice(username);
+    
+    const auth = await ig.account.login(username, password);
+    const followers = await ig.user.info(auth.pk);
+    const followerCount = followers.follower_count;
+
+    return followerCount;
+};
+
+module.exports = { getUserInfo, followerInfo, followingInfo, notToBeFollowed, getUserInfoByUsername, getUserInstagramStats };
