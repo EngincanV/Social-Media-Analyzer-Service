@@ -25,6 +25,7 @@
     "express": "4.17.1",
     "express-swagger-generator": "^1.1.17",
     "http-errors": "^1.8.0",
+    "instagram-private-api": "^1.43.3",
     "instagram-web-api": "^2.2.2",
     "jsonwebtoken": "^8.5.1",
     "multer": "^1.4.2",
