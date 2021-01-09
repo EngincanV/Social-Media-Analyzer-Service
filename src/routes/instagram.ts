@@ -1,5 +1,7 @@
+import refreshDataService from "../services/RefreshDataService";
 const express = require('express');
 const router = express.Router();
+const { getUserId } = require("../helpers/userInfo");
 
 const instagramService = require("../services/instagramService");
 
@@ -14,10 +16,15 @@ const instagramService = require("../services/instagramService");
 router.post('/user-info', async function (req: any, res: any) {
   const { username, password } = req.body;
 
-  await instagramService.getUserInfo(username, password)
-    .then((data: object) => res.json(data));
-});
+  const token: string = req.headers['authorization'];
+  const userId: number = getUserId(token);
 
+  await refreshDataService.refreshDataManagerAsync(userId, username, password);
+
+  await instagramService.getUserInfo(username, password)
+    .then((data: object) => res.json(data))
+    .catch((err: any) => res.json({ err: err.error.message }));
+});
 
 /**
  * @route POST /followers
@@ -29,6 +36,10 @@ router.post('/user-info', async function (req: any, res: any) {
  */
 router.post('/followers', async function (req: any, res: any) {
   const { username, password } = req.body;
+
+  const token: string = req.headers['authorization'];
+  const userId: number = getUserId(token);
+  await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.followerInfo(username, password)
     .then((data: object) => res.json(data));
@@ -46,6 +57,10 @@ router.post('/followers', async function (req: any, res: any) {
 router.post("/followings", async function (req: any, res: any) {
   const { username, password } = req.body;
 
+  const token: string = req.headers['authorization'];
+  const userId: number = getUserId(token);
+  await refreshDataService.refreshDataManagerAsync(userId, username, password);
+
   await instagramService.followingInfo(username, password)
     .then((data: object) => res.json(data));
 });
@@ -62,6 +77,10 @@ router.post("/followings", async function (req: any, res: any) {
 router.post("/not-followed-users", async function (req: any, res: any) {
   const { username, password } = req.body;
   const userInfo: any = { };
+
+  const token: string = req.headers['authorization'];
+  const userId: number = getUserId(token);
+  await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.notToBeFollowed(username, password)
     .then((data: any) => userInfo.notToBeFollowed = data)
@@ -81,7 +100,8 @@ router.get("/userInfoByUsername/:username", async function (req: any, res: any) 
   const { username } = req.params;
 
   await instagramService.getUserInfoByUsername(username)
-    .then((data: any) => res.json(data));
+    .then((data: any) => res.json(data))
+    .catch((err: any) => res.json({ message: "Given username infos could not retrieved.", status: false }));
 });
 
 module.exports = router;

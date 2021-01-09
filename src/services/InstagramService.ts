@@ -2,13 +2,13 @@ import { IgApiClient } from "instagram-private-api";
 const Instagram = require("instagram-web-api");
 
 const getUserInfo = async (username: string, password: string) => {
-    const client = new Instagram({ username, password });
+    const ig = new IgApiClient();
+    ig.state.generateDevice(username);
+    
+    const auth = await ig.account.login(username, password);
+    const infos = await ig.user.info(auth.pk);
 
-    await client.login({ username, password });
-
-    const result = await client.getUserByUsername({ username });
-
-    return result;
+    return infos;
 };
 
 const followerInfo = async (username: string, password: string) => {
@@ -53,16 +53,6 @@ const notToBeFollowed = async (username: string, password: string) => {
         }
     })
 
-    // console.log(followersArr)
-
-    // for (let i = 0; i < followingsArr.length; i++) {
-    //     for (let j = 0; j < followersArr.length; j++) {
-    //         if(followingsArr[i].pk === followersArr[j].pk) {
-    //             notToBeFollowedUsers.splice(i, 1);
-    //         }
-    //     }
-    // }
-
     return notToBeFollowedUsers;
 };
 
@@ -86,10 +76,8 @@ const getUserInfoByUsername = async (searchUsername: string) => {
     let userInfo: IUserInfo = { bio: "", followers_count: 0, followings_count: 0, full_name: "", userId: 0, is_private: false, profile_pic_url: "", notToBeFollowed: [], post_count: 0 };
     let notToBeFollowedUsers = [];
 
-    //projehesap bilgileri ile fake login
-    await client.login(USERNAME, PASSWORD);
+    await client.login(USERNAME, PASSWORD); 
 
-    //get user page infos
     await client.getUserByUsername({ username: searchUsername })
         .then(({ biography, edge_followed_by, edge_follow, full_name, id, is_private, profile_pic_url, edge_owner_to_timeline_media }: any) => {
             userInfo = {
@@ -133,10 +121,21 @@ const getUserInstagramStats = async (username: string, password: string) => {
     ig.state.generateDevice(username);
     
     const auth = await ig.account.login(username, password);
-    const followers = await ig.user.info(auth.pk);
-    const followerCount = followers.follower_count;
+    const infos = await ig.user.info(auth.pk);
 
-    return followerCount;
+    const followerCount = infos.follower_count;
+    const followingCount = infos.following_count;
+    const postCount = infos.media_count;
+
+    const userInstagramStats: IUserInstagramStats = { followerCount, followingCount, postCount };
+
+    return userInstagramStats;
 };
+
+interface IUserInstagramStats {
+    followerCount: number,
+    followingCount: number,
+    postCount: number
+}
 
 module.exports = { getUserInfo, followerInfo, followingInfo, notToBeFollowed, getUserInfoByUsername, getUserInstagramStats };
