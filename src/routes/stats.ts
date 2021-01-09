@@ -35,6 +35,21 @@ router.get("/weekly-stats", async (req: any, res: any) => {
 });
 
 /**
+ * @route GET /monthly-stats
+ * @group Stats - Stats
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - Unexpected error
+ */
+router.get("/monthly-stats", async (req: any, res: any) => {
+    const token: string = req.headers['authorization'];
+    const userId: number = getUserId(token);
+
+    var userMonthlyStats = await statService.getUserMonthlyInstagramStatsAsync(userId);
+
+    res.json(userMonthlyStats);
+});
+
+/**
  * @route GET /yearly-stats
  * @group Stats - Stats
  * @returns {object} 200 - An array of user info

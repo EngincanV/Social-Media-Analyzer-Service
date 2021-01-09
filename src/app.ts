@@ -35,7 +35,7 @@ app.use("/account", accountRouter);
 app.use("/api/instagram", instagramRouter);
 app.use("/api/feedback", feedbackRouter);
 app.use("/api/personal-info", personalInfoRouter);
-app.use("/", statsRouter);
+app.use("/api/stats", statsRouter);
 
 //catch 404 and forward to error handler 
 app.use((req: any, res: any, next: any) => {
