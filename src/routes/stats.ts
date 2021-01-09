@@ -19,4 +19,19 @@ router.get("/daily-stats", async (req: any, res: any) => {
     res.json(userDailyStats);
 });
 
+/**
+ * @route GET /weekly-stats
+ * @group Stats - Stats
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - Unexpected error
+ */
+router.get("/weekly-stats", async (req: any, res: any) => {
+    const token: string = req.headers['authorization'];
+    const userId: number = getUserId(token);
+
+    var userWeeklyStats = await statService.getUserWeeklyInstagramStatsAsync(userId);
+
+    res.json(userWeeklyStats);
+});
+
 module.exports = router;

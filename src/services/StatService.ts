@@ -72,7 +72,43 @@ const getUserDailyInstagramStatsAsync = async (userId: number) => {
 }
 
 const getUserWeeklyInstagramStatsAsync = async (userId: number) => {
-    
+    const db = mysql.createConnection(dbConfig);
+
+    const sqlCommand: string = `SELECT Date, FollowerCount FROM Stats WHERE userId = ${userId} and WEEKOFYEAR(date) = WEEKOFYEAR(NOW()) ORDER BY Date desc`;
+
+    return await new Promise((resolve: any, reject: any) => {
+        db.connect((err: any) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                db.query(sqlCommand, (err: any, results: any[]) => {
+                    if (err) {
+                        reject(err);
+                    }
+
+                    const dailyInstagramStats: any[] = [];
+
+                    results.forEach(x => {
+                        var date = x.Date.toLocaleString("tr").split(" ")[0];
+                        var weekdayName: string = x.Date.toLocaleString("tr", { weekday: "short" });
+                        var fullDate = date.concat(" ", weekdayName);
+
+                        var isStatExist = dailyInstagramStats.find(x => x.date === fullDate);
+                        if(isStatExist === undefined) {
+                            dailyInstagramStats.push({ date: fullDate, followerCount: x.FollowerCount });
+                        }
+                    });
+                    
+                    resolve(dailyInstagramStats);
+                });
+            }
+            db.end((err: any) => {
+                if (err) 
+                    reject(err);
+            });
+        }) 
+    }) 
 }
 
-export default { saveUserInstagramStatsAsync, getUserDailyInstagramStatsAsync };
+export default { saveUserInstagramStatsAsync, getUserDailyInstagramStatsAsync, getUserWeeklyInstagramStatsAsync };
