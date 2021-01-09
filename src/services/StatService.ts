@@ -87,20 +87,20 @@ const getUserWeeklyInstagramStatsAsync = async (userId: number) => {
                         reject(err);
                     }
 
-                    const dailyInstagramStats: any[] = [];
+                    const weeklyInstagramStats: any[] = [];
 
                     results.forEach(x => {
                         var date = x.Date.toLocaleString("tr").split(" ")[0];
                         var weekdayName: string = x.Date.toLocaleString("tr", { weekday: "short" });
                         var fullDate = date.concat(" ", weekdayName);
 
-                        var isStatExist = dailyInstagramStats.find(x => x.date === fullDate);
+                        var isStatExist = weeklyInstagramStats.find(x => x.date === fullDate);
                         if(isStatExist === undefined) {
-                            dailyInstagramStats.push({ date: fullDate, followerCount: x.FollowerCount });
+                            weeklyInstagramStats.push({ date: fullDate, followerCount: x.FollowerCount });
                         }
                     });
                     
-                    resolve(dailyInstagramStats);
+                    resolve(weeklyInstagramStats);
                 });
             }
             db.end((err: any) => {
@@ -111,4 +111,45 @@ const getUserWeeklyInstagramStatsAsync = async (userId: number) => {
     }) 
 }
 
-export default { saveUserInstagramStatsAsync, getUserDailyInstagramStatsAsync, getUserWeeklyInstagramStatsAsync };
+const getUserYearlyInstagramStatsAsync = async (userId: number) => {
+    const db = mysql.createConnection(dbConfig);
+
+    const sqlCommand: string = `SELECT Date, FollowerCount FROM Stats WHERE userId = ${userId} and YEAR(date) = YEAR(NOW()) ORDER BY Date desc`;
+
+    return await new Promise((resolve: any, reject: any) => {
+        db.connect((err: any) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                db.query(sqlCommand, (err: any, results: any[]) => {
+                    if (err) {
+                        reject(err);
+                    }
+
+                    const yearlyInstagramStats: any[] = [];
+
+                    results.forEach(x => {
+                        var date = new Date(x.Date.toISOString().split("T"));
+                        var month = date.getMonth() + 1;
+                        var year = date.getFullYear();
+                        var fullDate = month.toString().concat(" ", year.toString());
+                
+                        var isStatExist = yearlyInstagramStats.find(x => x.date === fullDate);
+                        if(isStatExist === undefined) {
+                            yearlyInstagramStats.push({ date: fullDate, followerCount: x.FollowerCount });
+                        }
+                    });
+                    
+                    resolve(yearlyInstagramStats);
+                });
+            }
+            db.end((err: any) => {
+                if (err) 
+                    reject(err);
+            });
+        }) 
+    }) 
+}
+
+export default { saveUserInstagramStatsAsync, getUserDailyInstagramStatsAsync, getUserWeeklyInstagramStatsAsync, getUserYearlyInstagramStatsAsync };
