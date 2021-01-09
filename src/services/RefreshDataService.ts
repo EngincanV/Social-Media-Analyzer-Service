@@ -25,6 +25,7 @@ async function refreshDataManagerAsync(userId: number, igUsername: string, igPas
 
     await statService.saveUserInstagramStatsAsync(userId, igUsername, igPassword);
 }
+
 async function addRefreshDataAsync(userId: number, dailyRefreshCount: number) {
     const db = mysql.createConnection(dbConfig);
     var date = new Date();
@@ -56,7 +57,6 @@ async function addRefreshDataAsync(userId: number, dailyRefreshCount: number) {
 
 async function getRefreshDataCountByUserIdAsync(userId: number) {
     const db = mysql.createConnection(dbConfig);
-    console.log("userId " + userId);
     const sqlCommand: string = `SELECT st.refreshCount FROM subscriptions s inner join subscriptiontypes st on s.subscriptionTypeId = st.id WHERE s.userId = ${userId}`;
 
     return await new Promise((resolve: any, reject: any) => {

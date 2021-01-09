@@ -5,9 +5,10 @@ const mysql = require("mysql");
 
 const saveUserInstagramStatsAsync = async (userId: number, username: string, password: string) => {
     const db = mysql.createConnection(dbConfig);
-    const followerCount = await getUserInstagramStats(username, password)
+    const userInfo = await getUserInstagramStats(username, password);
+    const { followerCount, followingCount, postCount } = userInfo;
     
-    const sqlCommand: string = `INSERT INTO stats (userId, FollowerCount) VALUES (${userId}, ${followerCount})`;
+    const sqlCommand: string = `INSERT INTO stats (userId, FollowerCount, FollowingCount, PostCount) VALUES (${userId}, ${followerCount}, ${followingCount}, ${postCount})`;
 
     return await new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {

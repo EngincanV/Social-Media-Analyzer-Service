@@ -2,13 +2,13 @@ import { IgApiClient } from "instagram-private-api";
 const Instagram = require("instagram-web-api");
 
 const getUserInfo = async (username: string, password: string) => {
-    const client = new Instagram({ username, password });
+    const ig = new IgApiClient();
+    ig.state.generateDevice(username);
+    
+    const auth = await ig.account.login(username, password);
+    const infos = await ig.user.info(auth.pk);
 
-    await client.login({ username, password });
-
-    const result = await client.getUserByUsername({ username });
-
-    return result;
+    return infos;
 };
 
 const followerInfo = async (username: string, password: string) => {
@@ -121,10 +121,21 @@ const getUserInstagramStats = async (username: string, password: string) => {
     ig.state.generateDevice(username);
     
     const auth = await ig.account.login(username, password);
-    const followers = await ig.user.info(auth.pk);
-    const followerCount = followers.follower_count;
+    const infos = await ig.user.info(auth.pk);
 
-    return followerCount;
+    const followerCount = infos.follower_count;
+    const followingCount = infos.following_count;
+    const postCount = infos.media_count;
+
+    const userInstagramStats: IUserInstagramStats = { followerCount, followingCount, postCount };
+
+    return userInstagramStats;
 };
+
+interface IUserInstagramStats {
+    followerCount: number,
+    followingCount: number,
+    postCount: number
+}
 
 module.exports = { getUserInfo, followerInfo, followingInfo, notToBeFollowed, getUserInfoByUsername, getUserInstagramStats };
