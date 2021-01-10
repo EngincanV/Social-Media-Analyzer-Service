@@ -23,7 +23,7 @@ router.post('/user-info', async function (req: any, res: any) {
 
   await instagramService.getUserInfo(username, password)
     .then((data: object) => res.json(data))
-    .catch((err: any) => res.json({ err: err.error.message }));
+    .catch((err: any) => res.json({ err: err }));
 });
 
 /**

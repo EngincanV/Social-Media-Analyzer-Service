@@ -8,7 +8,19 @@ const getUserInfo = async (username: string, password: string) => {
     const auth = await ig.account.login(username, password);
     const infos = await ig.user.info(auth.pk);
 
-    return infos;
+    var resultObj = { userInfo: infos, totalLikeCount: 0, totalCommentCount: 0 };
+    const client = new Instagram({ username, password });
+    await client.login({ username, password });
+
+    const result = await client.getUserByUsername({ username });
+    var posts: any[] = result.edge_owner_to_timeline_media.edges;
+
+    posts.forEach(post => {
+        resultObj.totalLikeCount += post.node.edge_liked_by.count;
+        resultObj.totalCommentCount += post.node.edge_media_to_comment.count;
+    });
+
+    return resultObj;
 };
 
 const followerInfo = async (username: string, password: string) => {
@@ -18,6 +30,12 @@ const followerInfo = async (username: string, password: string) => {
     const auth = await ig.account.login(username, password);
     const followers = ig.feed.accountFollowers(auth.pk);
     const items = await followers.items();
+
+    followers.items$.subscribe(
+        followersInfo => console.log(followersInfo),
+        error => console.error(error),
+        () => console.log('Complete!'),
+      );
 
     return items;
 };
@@ -74,7 +92,7 @@ const getUserInfoByUsername = async (searchUsername: string) => {
 
     const client = new Instagram({ username: USERNAME, password: PASSWORD });
     let userInfo: IUserInfo = { bio: "", followers_count: 0, followings_count: 0, full_name: "", userId: 0, is_private: false, profile_pic_url: "", notToBeFollowed: [], post_count: 0 };
-    let notToBeFollowedUsers = [];
+    let notToBeFollowedUsers: any = [];
 
     await client.login(USERNAME, PASSWORD); 
 
@@ -93,23 +111,23 @@ const getUserInfoByUsername = async (searchUsername: string) => {
             };
         });
 
-    const userId: string = userInfo.userId.toString();
+    // const userId: string = userInfo.userId.toString();
     
-    const followings = await client.getFollowings({ userId })
-        .then((res: any) => res.data);
+    // const followings = await client.getFollowings({ userId })
+    //     .then((res: any) => res.data);
 
-    const followers = await client.getFollowers({ userId })
-        .then((res: any) => res.data);
+    // const followers = await client.getFollowers({ userId })
+    //     .then((res: any) => res.data);
 
-    notToBeFollowedUsers = followings;
+    // notToBeFollowedUsers = followings;
 
-    for (let i = 0; i < followings.length; i++) {
-        for (let j = 0; j < followers.length; j++) {
-            if (followings[i].id === followers[j].id) {
-                notToBeFollowedUsers.splice(i, 1);
-            }
-        }
-    }
+    // for (let i = 0; i < followings.length; i++) {
+    //     for (let j = 0; j < followers.length; j++) {
+    //         if (followings[i].id === followers[j].id) {
+    //             notToBeFollowedUsers.splice(i, 1);
+    //         }
+    //     }
+    // }
 
     userInfo.notToBeFollowed = notToBeFollowedUsers;
 
