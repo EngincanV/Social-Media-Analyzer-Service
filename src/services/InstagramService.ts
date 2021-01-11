@@ -2,25 +2,31 @@ import { IgApiClient } from "instagram-private-api";
 const Instagram = require("instagram-web-api");
 
 const getUserInfo = async (username: string, password: string) => {
-    const ig = new IgApiClient();
-    ig.state.generateDevice(username);
+    // const ig = new IgApiClient();
+    // ig.state.generateDevice(username);
     
-    const auth = await ig.account.login(username, password);
-    const infos = await ig.user.info(auth.pk);
+    // const auth = await ig.account.login(username, password);
+    // const infos = await ig.user.info(auth.pk);
 
-    var resultObj = { userInfo: infos, totalLikeCount: 0, totalCommentCount: 0 };
-    const client = new Instagram({ username, password });
-    await client.login({ username, password });
+    // var resultObj = { userInfo: infos, totalLikeCount: 0, totalCommentCount: 0 };
+    // const client = new Instagram({ username, password });
+    // await client.login({ username, password });
 
-    const result = await client.getUserByUsername({ username });
-    var posts: any[] = result.edge_owner_to_timeline_media.edges;
+    // const result = await client.getUserByUsername({ username });
+    // var posts: any[] = result.edge_owner_to_timeline_media.edges;
 
-    posts.forEach(post => {
-        resultObj.totalLikeCount += post.node.edge_liked_by.count;
-        resultObj.totalCommentCount += post.node.edge_media_to_comment.count;
-    });
+    // posts.forEach(post => {
+    //     resultObj.totalLikeCount += post.node.edge_liked_by.count;
+    //     resultObj.totalCommentCount += post.node.edge_media_to_comment.count;
+    // });
 
-    return resultObj;
+    var ig = new Instagram({username, password });
+    var user = await ig.login({ username, password });
+    const userId = user.userId;
+
+    const result = await ig.getFollowers({ userId });
+
+    return result;
 };
 
 const followerInfo = async (username: string, password: string) => {
@@ -51,25 +57,40 @@ const followingInfo = async (username: string, password: string) => {
     return items;
 }
 
-//TODO: fix this method
 const notToBeFollowed = async (username: string, password: string) => {
-    const ig = new IgApiClient();
-    ig.state.generateDevice(username);
+    // const ig = new IgApiClient();
+    // ig.state.generateDevice(username);
 
-    const auth = await ig.account.login(username, password);
-    const followers = ig.feed.accountFollowers(auth.pk);
-    const followersArr = await followers.items();
+    // const auth = await ig.account.login(username, password);
+    // const followers = ig.feed.accountFollowers(auth.pk);
+    // const followersArr = await followers.items();
     
-    const followings = ig.feed.accountFollowing(auth.pk);
-    const followingsArr = await followings.items();
+    // const followings = ig.feed.accountFollowing(auth.pk);
+    // const followingsArr = await followings.items();
     
+    // let notToBeFollowedUsers: any[] = [];
+
+    // followersArr.forEach((value) => {
+    //     if(followingsArr.find(x => x.username == value.username) === undefined) {
+    //         notToBeFollowedUsers.push(value);
+    //     }
+    // })
+
+    // return notToBeFollowedUsers;
+
+    var ig = new Instagram({username, password });
+    var user = await ig.login({ username, password });
+    const userId = user.userId;
+
+    const result = await ig.getFollowers({ userId });
+    var followers: any[] = result.data;
     let notToBeFollowedUsers: any[] = [];
 
-    followersArr.forEach((value) => {
-        if(followingsArr.find(x => x.username == value.username) === undefined) {
-            notToBeFollowedUsers.push(value);
+    followers.forEach(follower => {
+        if(!follower.followed_by_viewer) {
+            notToBeFollowedUsers.push(follower);
         }
-    })
+    });
 
     return notToBeFollowedUsers;
 };

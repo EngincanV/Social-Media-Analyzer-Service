@@ -76,16 +76,14 @@ router.post("/followings", async function (req: any, res: any) {
  */
 router.post("/not-followed-users", async function (req: any, res: any) {
   const { username, password } = req.body;
-  const userInfo: any = { };
 
   const token: string = req.headers['authorization'];
   const userId: number = getUserId(token);
   await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.notToBeFollowed(username, password)
-    .then((data: any) => userInfo.notToBeFollowed = data)
-  
-    res.send(userInfo);
+    .then((data: any) => res.json(data))
+    .catch((err: any) => res.json({ message: "Please try later" }))
 });
 
 
