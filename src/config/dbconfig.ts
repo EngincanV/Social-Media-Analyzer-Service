@@ -6,10 +6,10 @@ interface IMysqlConfig {
 }
 
 var mysqlConfig: IMysqlConfig = {
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "SocialMediaAnalyzer"
+    host: "us-cdbr-east-02.cleardb.com",
+    user: "b81bb2a43eb405",
+    password: "b08966f5",
+    database: "heroku_cc534c2a327b39d"
 };
 
 export default mysqlConfig;
