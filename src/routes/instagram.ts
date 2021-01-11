@@ -6,7 +6,7 @@ const { getUserId } = require("../helpers/userInfo");
 const instagramService = require("../services/instagramService");
 
 /**
- * @route POST /user-info
+ * @route POST /api/instagram/user-info
  * @group Instagram - Instagram Analysis
  * @param {string} username
  * @param {string} password
@@ -27,7 +27,7 @@ router.post('/user-info', async function (req: any, res: any) {
 });
 
 /**
- * @route POST /followers
+ * @route POST /api/instagram/followers
  * @group Instagram - Instagram Analysis
  * @param {string} username
  * @param {string} password
@@ -47,7 +47,7 @@ router.post('/followers', async function (req: any, res: any) {
 
 
 /**
- * @route POST /followings
+ * @route POST /api/instagram/followings
  * @group Instagram - Instagram Analysis
  * @param {string} username
  * @param {string} password
@@ -67,7 +67,7 @@ router.post("/followings", async function (req: any, res: any) {
 
 
 /**
- * @route POST /not-followed-users
+ * @route POST /api/instagram/not-followed-users
  * @group Instagram - Instagram Analysis
  * @param {string} username
  * @param {string} password
@@ -90,7 +90,7 @@ router.post("/not-followed-users", async function (req: any, res: any) {
 
 
 /**
- * @route GET /userInfoByUsername:username
+ * @route GET /api/instagram/userInfoByUsername:username
  * @group Instagram - Instagram Analysis
  * @param {string} username
  * @returns {object} 200 - An array of user info

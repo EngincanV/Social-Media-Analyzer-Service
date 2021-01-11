@@ -5,7 +5,7 @@ const { getUserId } = require("../helpers/userInfo");
 const router = express();
 
 /**
- * @route GET /daily-stats
+ * @route GET /api/stats/daily-stats
  * @group Stats - Stats
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - Unexpected error
@@ -20,7 +20,7 @@ router.get("/daily-stats", async (req: any, res: any) => {
 });
 
 /**
- * @route GET /weekly-stats
+ * @route GET /api/stats/weekly-stats
  * @group Stats - Stats
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - Unexpected error
@@ -35,7 +35,7 @@ router.get("/weekly-stats", async (req: any, res: any) => {
 });
 
 /**
- * @route GET /monthly-stats
+ * @route GET /api/stats/monthly-stats
  * @group Stats - Stats
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - Unexpected error
@@ -50,7 +50,7 @@ router.get("/monthly-stats", async (req: any, res: any) => {
 });
 
 /**
- * @route GET /yearly-stats
+ * @route GET /api/stats/yearly-stats
  * @group Stats - Stats
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - Unexpected error

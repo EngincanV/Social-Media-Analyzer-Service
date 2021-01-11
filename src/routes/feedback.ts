@@ -8,6 +8,13 @@ const router = express();
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
+/**
+ * @route POST /api/feedback/add
+ * @group Feedback - Operations about user
+ * @param {string} profilePhoto
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - Unexpected error
+ */
 router.post("/add", async (req: any, res: any) => {
     const db = mysql.createConnection(dbConfig);
     const token: string = req.headers['authorization'];

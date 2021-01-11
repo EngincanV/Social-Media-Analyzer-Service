@@ -8,6 +8,12 @@ const { getUserId } = require("../helpers/userInfo");
 
 const router = express();
 
+/**
+ * @route GET /api/personal-info/personal-info
+ * @group Personal Info - Personal Info
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - Unexpected error
+ */
 router.get("/", async (req: any, res: any) => {
     const token: string = req.headers['authorization'];
     const userId: number = getUserId(token);
@@ -22,7 +28,7 @@ router.get("/", async (req: any, res: any) => {
 });
 
 /**
- * @route POST /personal-info/change-password
+ * @route POST /api/personal-info/personal-info/change-password
  * @group Personal Info - Personal Info
  * @param {string} password
  * @param {string} newPassword
@@ -50,7 +56,7 @@ router.post("/change-password", async (req: any, res: any) => {
 });
 
 /**
- * @route POST /personal-info/edit
+ * @route POST /api/personal-info/personal-info/edit
  * @group Personal Info - Personal Info
  * @param {string} firstname
  * @param {string} lastname
