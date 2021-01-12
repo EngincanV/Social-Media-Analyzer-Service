@@ -11,7 +11,8 @@ router.use(express.urlencoded({ extended: true }));
 /**
  * @route POST /api/feedback/add
  * @group Feedback - Operations about user
- * @param {string} profilePhoto
+ * @param {string} topic
+ * @param {string} message
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - Unexpected error
  */
