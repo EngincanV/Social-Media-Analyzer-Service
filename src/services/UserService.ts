@@ -53,13 +53,13 @@ const login = async (email: string, password: string) => {
 
 }
 
-const register = async (firstname: string, surname: string, username: string, email: string, password: string) => {
+const register = async (firstname: string, surname: string, email: string, password: string) => {
     const db = mysql.createConnection(dbConfig);
 
-    var isUserExist: boolean = isUsernameExist(username);
+    var isUserExist: boolean = isEmailExist(email);
     var hashedPassword: string = await hashPasswordAsync(password);
 
-    let sqlCommand: string = `INSERT INTO users (firstname, surname, username, email, password) VALUES ("${firstname}", "${surname}","${username}","${email}","${hashedPassword}")`;
+    let sqlCommand: string = `INSERT INTO users (firstname, surname, email, password) VALUES ("${firstname}", "${surname}","${email}","${hashedPassword}")`;
 
     return new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {
@@ -68,11 +68,11 @@ const register = async (firstname: string, surname: string, username: string, em
             }
             else {
                 if (isUserExist) {
-                    resolve({ message: "Username already exist, please choose a new username" });
+                    resolve({ message: "Email already exist, please type a new email address" });
                 }
                 db.query(sqlCommand, (err: any, results: any) => {
                     if (err) {
-                        resolve({ 'success': 'false', 'message': 'You must change username' });
+                        resolve({ success: false, message: 'You must change the email address you typed' });
                     }
                     else {
                         var userId = results.insertId;
@@ -137,9 +137,9 @@ const comparePasswordAsync = async (password: string, hash: string): Promise<boo
     }
 }
 
-function isUsernameExist(username: string): any {
+function isEmailExist(email: string): any {
     const db = mysql.createConnection(dbConfig);
-    let command: string = `SELECT * FROM users WHERE username = "${username}"`;
+    let command: string = `SELECT * FROM users WHERE email = "${email}"`;
 
     db.connect((err: any) => {
         if (err) {
@@ -151,9 +151,9 @@ function isUsernameExist(username: string): any {
             if (err)
                 throw err;
 
-            var isUsernameExist: boolean = results.length > 0;
+            var isEmailExist: boolean = results.length > 0;
 
-            return isUsernameExist;
+            return isEmailExist;
         });
     });
 }

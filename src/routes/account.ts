@@ -53,7 +53,6 @@ router.post('/login', async (req, res, next) => {
  * @group Account - Operations about user
  * @param {string} firstname
  * @param {string} surname
- * @param {string} username
  * @param {string} email - eg: admin@gmail.com
  * @param {string} password
  * @returns {object} 200 - An array of user info
@@ -62,7 +61,7 @@ router.post('/login', async (req, res, next) => {
 router.post('/register', async (req, res, next) => {
     const { firstname, surname, username, email, password } = req.body;
 
-    const registerUser = await register(firstname, surname, username, email, password);
+    const registerUser = await register(firstname, surname, email, password);
 
     res.json(registerUser);
 });
