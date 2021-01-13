@@ -76,7 +76,9 @@ router.post('/login', async (req, res, next) => {
                             data: { id: results[0].id, username: results[0].username }
                         }, jwtConfig.secretKey);
 
-                        res.send({ 'success': 'true', token });
+                        var { firstname, surname } = results[0];
+                        
+                        res.send({ success: true, token, firstname, surname});
                     }
 
                     res.send({ success: false, message: "Given password is wrong" });
