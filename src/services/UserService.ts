@@ -15,11 +15,17 @@ const login = async (email: string, password: string) => {
     return new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
+                db.end((err: any) => {
+                    if (err) reject(err);
+                });
                 reject(err);
             }
             else {
                 db.query(sql, async (err: any, results: any) => {
                     if (err) {
+                        db.end((err: any) => {
+                            if (err) reject(err);
+                        })
                         resolve({ success: false, message: 'Could not connect db' });
                     }
                     else if (results.length > 0) {
@@ -35,18 +41,22 @@ const login = async (email: string, password: string) => {
 
                             var { firstname, surname } = results[0];
 
+                            db.end((err: any) => {
+                                if (err) reject(err);
+                            })
                             resolve({ success: true, token, firstname, surname });
                         }
 
                         resolve({ success: false, message: "Given password is wrong" });
                     }
                     else {
+                        db.end((err: any) => {
+                            if (err) reject(err);
+                        })
                         resolve({ success: false, message: "User not found" });
                     }
                 });
-                db.end((err: any) => {
-                    if (err) reject(err);
-                })
+               
             }
         })
     });
@@ -56,7 +66,7 @@ const login = async (email: string, password: string) => {
 const register = async (firstname: string, surname: string, email: string, password: string) => {
     const db = mysql.createConnection(dbConfig);
 
-    var isUserExist: boolean = isEmailExist(email);
+    var isUserExist: boolean = await isEmailExistAsync(email);
     var hashedPassword: string = await hashPasswordAsync(password);
 
     let sqlCommand: string = `INSERT INTO users (firstname, surname, email, password) VALUES ("${firstname}", "${surname}","${email}","${hashedPassword}")`;
@@ -64,25 +74,34 @@ const register = async (firstname: string, surname: string, email: string, passw
     return new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
+                db.end((err: any) => {
+                    if (err) reject(err);
+                });
                 reject(err);
             }
             else {
                 if (isUserExist) {
+                    db.end((err: any) => {
+                        if (err) reject(err);
+                    });
                     resolve({ message: "Email already exist, please type a new email address" });
                 }
                 db.query(sqlCommand, (err: any, results: any) => {
                     if (err) {
+                        db.end((err: any) => {
+                            if (err) reject(err);
+                        });
                         resolve({ success: false, message: 'You must change the email address you typed' });
                     }
                     else {
                         var userId = results.insertId;
                         addUserToSubscription(userId);
 
+                        db.end((err: any) => {
+                            if (err) reject(err);
+                        });
                         resolve(results);
                     }
-                });
-                db.end((err: any) => {
-                    if (err) reject(err);
                 });
             }
         })
@@ -101,20 +120,27 @@ const addProfilePhoto = async (userId: number, profilePhoto: string) => {
 
         db.connect((err: any) => {
             if (err) {
+                db.end((err: any) => {
+                    if (err) reject(err);
+                });
                 reject(err);
             }
             else {
                 db.query(sqlCommand, (err: any, results: any) => {
                     if (err) {
+                        db.end((err: any) => {
+                            if (err) reject(err);
+                        });
                         resolve({ success: false, message: "Something went wrong when tried to add profile photo" });
                     }
                     else {
+                        db.end((err: any) => {
+                            if (err) reject(err);
+                        });
                         resolve(results);
                     }
                 });
-                db.end((err: any) => {
-                    if (err) reject(err);
-                });
+                
             }
         })
     });
@@ -137,23 +163,31 @@ const comparePasswordAsync = async (password: string, hash: string): Promise<boo
     }
 }
 
-function isEmailExist(email: string): any {
+async function isEmailExistAsync(email: string): Promise<any> {
     const db = mysql.createConnection(dbConfig);
     let command: string = `SELECT * FROM users WHERE email = "${email}"`;
 
-    db.connect((err: any) => {
-        if (err) {
-            console.log('Cannot connect database');
-            throw err;
-        }
-
-        db.query(command, (err: any, results: any) => {
-            if (err)
-                throw err;
-
-            var isEmailExist: boolean = results.length > 0;
-
-            return isEmailExist;
+    return new Promise((resolve: any, reject: any) => {
+        db.connect((err: any) => {
+            if (err) {
+                console.log('Cannot connect database');
+                db.end((err: any) => {
+                    if (err) reject(err);
+                });
+                reject(err);
+            }
+    
+            db.query(command, (err: any, results: any) => {
+                if (err)
+                    reject(err);
+    
+                var isEmailExist: boolean = results.length > 0;
+                db.end((err: any) => {
+                    if (err) reject(err);
+                });
+                resolve(isEmailExist);
+            });
+            
         });
     });
 }

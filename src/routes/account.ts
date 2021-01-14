@@ -59,7 +59,7 @@ router.post('/login', async (req, res, next) => {
  * @returns {Error}  400 - Unexpected error
  */
 router.post('/register', async (req, res, next) => {
-    const { firstname, surname, username, email, password } = req.body;
+    const { firstname, surname, email, password } = req.body;
 
     const registerUser = await register(firstname, surname, email, password);
 
