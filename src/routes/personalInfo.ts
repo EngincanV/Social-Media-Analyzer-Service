@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 
 import dbConfig from "../config/dbconfig";
 import hashConfig from "../config/hashconfig";
-const { getUserId } = require("../helpers/userInfo");
+const { getUserId, getUserEmail } = require("../helpers/userInfo");
 
 const router = express();
 
@@ -19,7 +19,7 @@ router.get("/", async (req: any, res: any) => {
     const userId: number = getUserId(token);
 
     if (userId === 0) {
-        res.end({ status: false, message: "User could not found." });
+        res.end({ status: false, message: "Kullanıcı bulunamadı." });
     }
 
     const userInfo = await getUserInfoByUserIdAsync(userId);
@@ -58,6 +58,7 @@ router.post("/change-password", async (req: any, res: any) => {
 /**
  * @route POST /api/personal-info/edit
  * @group Personal Info - Personal Info
+ * @param {string} password
  * @param {string} firstname
  * @param {string} surname
  * @param {string} email
@@ -67,14 +68,29 @@ router.post("/change-password", async (req: any, res: any) => {
 router.post("/edit", async (req: any, res: any) => {
     const token: string = req.headers['authorization'];
     const userId: number = getUserId(token);
-    const { firstname, surname, email } = req.body;
+    const currentEmail: string = getUserEmail(token);
+    const { password, firstname, surname, email } = req.body;
 
     if (userId === 0) {
-        res.end({ status: false, message: "User could not found." });
+        res.end({ status: false, message: "Kullanıcı bulunamadı." });
+    }
+
+    const isPasswordCorrect: boolean = await isUserPasswordCorrectAsync(password, userId);
+
+    if (!isPasswordCorrect) {
+        res.json({ status: false, message: "Girmiş olduğunuz şifre doğru değildir." });
+    }
+    
+    if (currentEmail !== email) {
+        var isEmailInUse: boolean = await isEmailExistAsync(email);
+
+        if (isEmailInUse) {
+            res.json({ status: false, message: "Girmiş olduğunuz email adresi başka bir kullanıcı tarafından kullanılmaktadır. Lütfen farklı bir email adresi giriniz." });
+        }
     }
 
     await updateUserInfosAsync(firstname, surname, email, userId)
-        .then(() => res.json({ status: true, message: "User infos have been changed successfully." }))
+        .then(() => res.json({ status: true, message: "Kullanıcı bilgileri başarılı bir şekilde değiştirilmiştir." }))
         .catch(err => res.json({ status: false, error: err }));
 });
 
@@ -83,26 +99,36 @@ const isUserPasswordCorrectAsync = async (password: string, userId: number): Pro
 
     let sqlCommand: string = `SELECT * FROM users WHERE id = ${userId}`;
 
-    return new Promise((resolve: any, reject: any) => {
+    return await new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
+                db.end((err: any) => {
+                    if (err)
+                        reject(err);
+                });
+
                 reject(err);
             }
             else {
                 db.query(sqlCommand, async (err: any, results: any) => {
                     if (err) {
+                        db.end((err: any) => {
+                            if (err)
+                                reject(err);
+                        });
+
                         reject(err);
                     }
 
                     const hashedPassword = results[0].password;
                     const isUserPaswordCorrect: boolean = await comparePasswordAsync(password, hashedPassword);
 
-                    resolve(isUserPaswordCorrect);
-                });
+                    db.end((err: any) => {
+                        if (err)
+                            reject(err);
+                    });
 
-                db.end((err: any) => {
-                    if (err)
-                        reject(err);
+                    resolve(isUserPaswordCorrect);
                 });
             }
         });
@@ -114,23 +140,37 @@ const changePasswordAsync = async (password: string, userId: number): Promise<an
 
     return new Promise((resolve: any, reject: any) => {
         db.connect(async (err: any) => {
-            if (err)
+            if (err) {
+                db.end((err: any) => {
+                    if (err)
+                        reject(err);
+                });
+
                 reject(err);
+            }
 
             let hashPassword: string = await hashPasswordAsync(password);
             let sqlCommand: string = `UPDATE users SET password = "${hashPassword}" WHERE id=${userId}`;
 
             db.query(sqlCommand, async (err: any, results: any) => {
-                if (err)
+                if (err) {
+                    db.end((err: any) => {
+                        if (err)
+                            reject(err);
+                    });
+
                     reject(err);
+                }
+
+                db.end((err: any) => {
+                    if (err)
+                        reject(err);
+                });
 
                 resolve(results);
             });
 
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
+
         });
     });
 }
@@ -170,23 +210,35 @@ const hashPasswordAsync = async (password: string): Promise<any> => {
 const updateUserInfosAsync = async (firstname: string, surname: string, email: string, userId: number) => {
     const db = mysql.createConnection(dbConfig);
 
-    return new Promise((resolve: any, reject: any) => {
+    return await new Promise((resolve: any, reject: any) => {
         db.connect(async (err: any) => {
-            if (err)
+            if (err) {
+                db.end((err: any) => {
+                    if (err)
+                        reject(err);
+                });
+
                 reject(err);
+            }
 
             let sqlCommand: string = `UPDATE users SET firstname = "${firstname}", surname = "${surname}", email = "${email}" WHERE id=${userId}`;
 
             db.query(sqlCommand, async (err: any, results: any) => {
-                if (err)
+                if (err) {
+                    db.end((err: any) => {
+                        if (err)
+                            reject(err);
+                    });
+
                     reject(err);
+                }
+
+                db.end((err: any) => {
+                    if (err)
+                        reject(err);
+                });
 
                 resolve(results);
-            });
-
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
             });
         });
     });
@@ -197,22 +249,62 @@ const getUserInfoByUserIdAsync = async (userId: number) => {
 
     return new Promise((resolve: any, reject: any) => {
         db.connect(async (err: any) => {
-            if (err)
+            if (err) {
+                db.end((err: any) => {
+                    if (err)
+                        reject(err);
+                });
+
                 reject(err);
-    
+            }
+
             let sqlCommand: string = `SELECT firstname, surname, username, email, profilePhoto FROM users WHERE id = ${userId}`;
-    
+
             db.query(sqlCommand, async (err: any, results: any) => {
-                if (err)
+                if (err) {
+                    db.end((err: any) => {
+                        if (err)
+                            reject(err);
+                    });
+
                     reject(err);
-    
+                }
+
+                db.end((err: any) => {
+                    if (err)
+                        reject(err);
+                });
                 resolve(results[0]);
             });
-    
-            db.end((err: any) => {
+        });
+    });
+}
+
+async function isEmailExistAsync(email: string): Promise<any> {
+    const db = mysql.createConnection(dbConfig);
+    let command: string = `SELECT * FROM users WHERE email = "${email}"`;
+
+    return await new Promise((resolve: any, reject: any) => {
+        db.connect((err: any) => {
+            if (err) {
+                console.log('Cannot connect database');
+                db.end((err: any) => {
+                    if (err) reject(err);
+                });
+                reject(err);
+            }
+
+            db.query(command, (err: any, results: any) => {
                 if (err)
                     reject(err);
+
+                var isEmailExist: boolean = results.length > 0;
+                db.end((err: any) => {
+                    if (err) reject(err);
+                });
+                resolve(isEmailExist);
             });
+
         });
     });
 }

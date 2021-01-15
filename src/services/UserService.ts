@@ -12,20 +12,24 @@ const login = async (email: string, password: string) => {
 
     let sql: string = `SELECT * FROM users WHERE email = "${email}"`;
 
-    return new Promise((resolve: any, reject: any) => {
+    return await new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
                 db.end((err: any) => {
-                    if (err) reject(err);
+                    if (err) 
+                        reject(err);
                 });
+
                 reject(err);
             }
             else {
                 db.query(sql, async (err: any, results: any) => {
                     if (err) {
                         db.end((err: any) => {
-                            if (err) reject(err);
+                            if (err) 
+                                reject(err);
                         })
+
                         resolve({ success: false, message: 'Could not connect db' });
                     }
                     else if (results.length > 0) {
@@ -36,27 +40,34 @@ const login = async (email: string, password: string) => {
                         if (isSuccess) {
                             const token: string = jwt.sign({
                                 exp: Math.floor(Date.now() / 1000) + (60 * 60), //1 hour
-                                data: { id: results[0].id, username: results[0].username }
+                                data: { id: results[0].id, email: results[0].email }
                             }, jwtConfig.secretKey);
 
                             var { firstname, surname } = results[0];
 
                             db.end((err: any) => {
-                                if (err) reject(err);
+                                if (err) 
+                                    reject(err);
                             })
+
                             resolve({ success: true, token, firstname, surname });
                         }
+
+                        db.end((err: any) => {
+                            if (err) reject(err);
+                        })
 
                         resolve({ success: false, message: "Given password is wrong" });
                     }
                     else {
                         db.end((err: any) => {
-                            if (err) reject(err);
+                            if (err)
+                                reject(err);
                         })
+
                         resolve({ success: false, message: "User not found" });
                     }
                 });
-               
             }
         })
     });
@@ -71,12 +82,13 @@ const register = async (firstname: string, surname: string, email: string, passw
 
     let sqlCommand: string = `INSERT INTO users (firstname, surname, email, password) VALUES ("${firstname}", "${surname}","${email}","${hashedPassword}")`;
 
-    return new Promise((resolve: any, reject: any) => {
+    return new Promise(async (resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
                 db.end((err: any) => {
                     if (err) reject(err);
                 });
+
                 reject(err);
             }
             else {
@@ -84,22 +96,25 @@ const register = async (firstname: string, surname: string, email: string, passw
                     db.end((err: any) => {
                         if (err) reject(err);
                     });
-                    resolve({ message: "Email already exist, please type a new email address" });
+
+                    resolve({ success: false,  message: "Girmiş olduğunuz email adresi kullanılmaktadır, lütfen farklı bir email adresi giriniz." });
                 }
-                db.query(sqlCommand, (err: any, results: any) => {
+                db.query(sqlCommand, async (err: any, results: any) => {
                     if (err) {
                         db.end((err: any) => {
                             if (err) reject(err);
                         });
-                        resolve({ success: false, message: 'You must change the email address you typed' });
+
+                        resolve({ success: false, message: 'Bir hata oluştu lütfen daha sonra tekrar deneyiniz.' });
                     }
                     else {
                         var userId = results.insertId;
-                        addUserToSubscription(userId);
+                        await addUserToSubscription(userId);
 
                         db.end((err: any) => {
                             if (err) reject(err);
                         });
+
                         resolve(results);
                     }
                 });
@@ -108,12 +123,18 @@ const register = async (firstname: string, surname: string, email: string, passw
     });
 }
 
-const addProfilePhoto = async (userId: number, profilePhoto: string) => {
+const addProfilePhoto = async (userId: number, password: string, profilePhoto: string) => {
     const db = mysql.createConnection(dbConfig);
 
-    return new Promise((resolve: any, reject: any) => {
+    return new Promise(async (resolve: any, reject: any) => {
         if (userId === 0) {
-            resolve({ status: false, message: "User could not found" });
+            resolve({ status: false, message: "Kullanıcı bulunamadı." });
+        }
+        
+        const isPasswordCorrect: boolean = await isUserPasswordCorrectAsync(password, userId);
+
+        if (!isPasswordCorrect) {
+            resolve({ status: false, message: "Girmiş olduğunuz şifre doğru değildir." });
         }
 
         let sqlCommand: string = `UPDATE users SET profilePhoto = "${profilePhoto}" WHERE id = ${userId}`;
@@ -123,6 +144,7 @@ const addProfilePhoto = async (userId: number, profilePhoto: string) => {
                 db.end((err: any) => {
                     if (err) reject(err);
                 });
+
                 reject(err);
             }
             else {
@@ -131,7 +153,7 @@ const addProfilePhoto = async (userId: number, profilePhoto: string) => {
                         db.end((err: any) => {
                             if (err) reject(err);
                         });
-                        resolve({ success: false, message: "Something went wrong when tried to add profile photo" });
+                        resolve({ success: false, message: "Profil fotoğrafı eklerken bir hata meydana geldi. Lütfen daha sonra tekrar deneyiniz." });
                     }
                     else {
                         db.end((err: any) => {
@@ -140,7 +162,7 @@ const addProfilePhoto = async (userId: number, profilePhoto: string) => {
                         resolve(results);
                     }
                 });
-                
+
             }
         })
     });
@@ -150,7 +172,8 @@ const comparePasswordAsync = async (password: string, hash: string): Promise<boo
     try {
         const isPasswordSame: boolean = await new Promise((resolve, reject) => {
             bcrypt.compare(password, hash, function (err: any, result: any) {
-                if (err) reject(err);
+                if (err) 
+                    reject(err);
 
                 resolve(result);
             });
@@ -174,20 +197,22 @@ async function isEmailExistAsync(email: string): Promise<any> {
                 db.end((err: any) => {
                     if (err) reject(err);
                 });
+
                 reject(err);
             }
-    
+
             db.query(command, (err: any, results: any) => {
                 if (err)
                     reject(err);
-    
+
                 var isEmailExist: boolean = results.length > 0;
                 db.end((err: any) => {
                     if (err) reject(err);
                 });
+
                 resolve(isEmailExist);
             });
-            
+
         });
     });
 }
@@ -204,6 +229,47 @@ const hashPasswordAsync = async (password: string): Promise<any> => {
     });
 
     return hashedPassword;
+}
+
+const isUserPasswordCorrectAsync = async (password: string, userId: number): Promise<boolean> => {
+    const db = mysql.createConnection(dbConfig);
+
+    let sqlCommand: string = `SELECT * FROM users WHERE id = ${userId}`;
+
+    return new Promise((resolve: any, reject: any) => {
+        db.connect((err: any) => {
+            if (err) {
+                db.end((err: any) => {
+                    if (err)
+                        reject(err);
+                });
+
+                reject(err);
+            }
+            else {
+                db.query(sqlCommand, async (err: any, results: any) => {
+                    if (err) {
+                        db.end((err: any) => {
+                            if (err)
+                                reject(err);
+                        });
+
+                        reject(err);
+                    }
+
+                    const hashedPassword = results[0].password;
+                    const isUserPaswordCorrect: boolean = await comparePasswordAsync(password, hashedPassword);
+
+                    db.end((err: any) => {
+                        if (err)
+                            reject(err);
+                    });
+
+                    resolve(isUserPaswordCorrect);
+                });
+            }
+        });
+    });
 }
 
 module.exports = { login, register, addProfilePhoto };

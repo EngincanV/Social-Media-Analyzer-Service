@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+import { exception } from "console";
 import jwtConfig from "../config/jwt-secret-key";
 
 const getUserId = (token: string): number => {
@@ -17,4 +18,19 @@ const getUserId = (token: string): number => {
     return 0;
 }
 
-module.exports = { getUserId };
+const getUserEmail = (token: string): string => {
+    if(token) {
+        try {
+            var decoded = jwt.verify(token, jwtConfig.secretKey);
+
+            return decoded.data.email;
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    throw exception("Bir hata gerçekleşti.")
+}
+
+module.exports = { getUserId, getUserEmail };
