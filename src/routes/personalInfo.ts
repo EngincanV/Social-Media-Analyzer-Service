@@ -41,17 +41,17 @@ router.post("/change-password", async (req: any, res: any) => {
     const { password, newPassword } = req.body;
 
     if (userId === 0) {
-        res.end({ status: false, message: "User could not found." });
+        res.end({ status: false, message: "Kullanıcı bulunamadı." });
     }
 
     const isPasswordCorrect: boolean = await isUserPasswordCorrectAsync(password, userId);
 
     if (!isPasswordCorrect) {
-        res.json({ status: false, message: "Wrong password typed!" });
+        res.json({ status: false, message: "Girdiğinizi şifre yanlış." });
     }
 
     await changePasswordAsync(newPassword, userId)
-        .then(() => res.json({ status: true, message: "User password has been changed successfully." }))
+        .then(() => res.json({ status: true, message: "Şifreniz başarıyla değiştirilmiştir." }))
         .catch((err) => res.json({ status: false, error: err }));
 });
 
@@ -138,7 +138,7 @@ const isUserPasswordCorrectAsync = async (password: string, userId: number): Pro
 const changePasswordAsync = async (password: string, userId: number): Promise<any> => {
     const db = mysql.createConnection(dbConfig);
 
-    return new Promise((resolve: any, reject: any) => {
+    return await new Promise((resolve: any, reject: any) => {
         db.connect(async (err: any) => {
             if (err) {
                 db.end((err: any) => {
@@ -247,7 +247,7 @@ const updateUserInfosAsync = async (firstname: string, surname: string, email: s
 const getUserInfoByUserIdAsync = async (userId: number) => {
     const db = mysql.createConnection(dbConfig);
 
-    return new Promise((resolve: any, reject: any) => {
+    return await new Promise((resolve: any, reject: any) => {
         db.connect(async (err: any) => {
             if (err) {
                 db.end((err: any) => {
@@ -274,6 +274,7 @@ const getUserInfoByUserIdAsync = async (userId: number) => {
                     if (err)
                         reject(err);
                 });
+                
                 resolve(results[0]);
             });
         });
