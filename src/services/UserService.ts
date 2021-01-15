@@ -115,7 +115,7 @@ const register = async (firstname: string, surname: string, email: string, passw
                             if (err) reject(err);
                         });
 
-                        resolve({  status: true, results });
+                        resolve({ success: true, results });
                     }
                 });
             }
