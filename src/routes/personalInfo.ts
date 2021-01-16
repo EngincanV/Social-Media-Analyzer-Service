@@ -30,6 +30,28 @@ router.get("/", async (req: any, res: any) => {
 });
 
 /**
+ * @route GET /api/personal-info/nameSurname
+ * @group Personal Info - Personal Info
+ * @returns {object} 200 - An array of user info
+ * @returns {Error}  400 - Unexpected error
+ */
+router.get("/nameSurname", async (req: any, res: any) => {
+    const token: string = req.headers['authorization'];
+    const userId: number = getUserId(token);
+
+    if (userId === 0) {
+        res.end({ success: false, message: "Kullanıcı bulunamadı." });
+    }
+
+    await getUserInfoByUserIdAsync(userId)
+        .then((data: any) => {
+            const { firstname, surname } = data;
+            res.json({ success: true, firstname, surname });
+        })
+        .catch((err) => res.json({ success: false, error: err }));
+});
+
+/**
  * @route POST /api/personal-info/change-password
  * @group Personal Info - Personal Info
  * @param {string} password

@@ -43,14 +43,12 @@ const login = async (email: string, password: string) => {
                                 data: { id: results[0].id, email: results[0].email }
                             }, jwtConfig.secretKey);
 
-                            var { firstname, surname } = results[0];
-
                             db.end((err: any) => {
                                 if (err) 
                                     reject(err);
                             })
 
-                            resolve({ success: true, token, firstname, surname });
+                            resolve({ success: true, token });
                         }
 
                         db.end((err: any) => {
