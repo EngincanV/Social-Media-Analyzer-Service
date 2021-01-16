@@ -57,7 +57,7 @@ const login = async (email: string, password: string) => {
                             if (err) reject(err);
                         })
 
-                        resolve({ success: false, message: "Given password is wrong" });
+                        resolve({ success: false, message: "Girdiğiniz şifre yanlış, lütfen şifrenizi doğru girdiğinizden emin olun." });
                     }
                     else {
                         db.end((err: any) => {
@@ -65,7 +65,7 @@ const login = async (email: string, password: string) => {
                                 reject(err);
                         })
 
-                        resolve({ success: false, message: "User not found" });
+                        resolve({ success: false, message: "Kullanıcı bulunamadı." });
                     }
                 });
             }
@@ -82,7 +82,7 @@ const register = async (firstname: string, surname: string, email: string, passw
 
     let sqlCommand: string = `INSERT INTO users (firstname, surname, email, password) VALUES ("${firstname}", "${surname}","${email}","${hashedPassword}")`;
 
-    return new Promise(async (resolve: any, reject: any) => {
+    return await new Promise(async (resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
                 db.end((err: any) => {
@@ -128,13 +128,13 @@ const addProfilePhoto = async (userId: number, password: string, profilePhoto: s
 
     return new Promise(async (resolve: any, reject: any) => {
         if (userId === 0) {
-            resolve({ status: false, message: "Kullanıcı bulunamadı." });
+            resolve({ success: false, message: "Kullanıcı bulunamadı." });
         }
         
         const isPasswordCorrect: boolean = await isUserPasswordCorrectAsync(password, userId);
 
         if (!isPasswordCorrect) {
-            resolve({ status: false, message: "Girmiş olduğunuz şifre doğru değildir." });
+            resolve({ success: false, message: "Girmiş olduğunuz şifre doğru değildir." });
         }
 
         let sqlCommand: string = `UPDATE users SET profilePhoto = "${profilePhoto}" WHERE id = ${userId}`;
@@ -153,13 +153,15 @@ const addProfilePhoto = async (userId: number, password: string, profilePhoto: s
                         db.end((err: any) => {
                             if (err) reject(err);
                         });
+
                         resolve({ success: false, message: "Profil fotoğrafı eklerken bir hata meydana geldi. Lütfen daha sonra tekrar deneyiniz." });
                     }
                     else {
                         db.end((err: any) => {
                             if (err) reject(err);
                         });
-                        resolve(results);
+
+                        resolve({ success: true, results });
                     }
                 });
 
@@ -190,7 +192,7 @@ async function isEmailExistAsync(email: string): Promise<any> {
     const db = mysql.createConnection(dbConfig);
     let command: string = `SELECT * FROM users WHERE email = "${email}"`;
 
-    return new Promise((resolve: any, reject: any) => {
+    return await new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
                 console.log('Cannot connect database');

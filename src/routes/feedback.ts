@@ -22,7 +22,7 @@ router.post("/add", async (req: any, res: any) => {
     const userId: number = getUserId(token);
 
     if (userId === 0) {
-        res.end({ status: false });
+        res.end({ success: false, message: "Kullanıcı bulunamadı." });
     }
 
     db.connect((err: any) => {
@@ -38,7 +38,7 @@ router.post("/add", async (req: any, res: any) => {
                     throw err;
                 }
                 else {
-                    res.send(results);
+                    res.send({ success: true, results });
                 }
             });
 

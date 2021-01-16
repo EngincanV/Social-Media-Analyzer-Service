@@ -83,7 +83,7 @@ router.post("/not-followed-users", async function (req: any, res: any) {
 
   await instagramService.notToBeFollowed(username, password)
     .then((data: any) => res.json(data))
-    .catch((err: any) => res.json({ message: "Please try later" }))
+    .catch((err: any) => res.json({ message: "Lütfen daha sonra tekrar deneyiniz." }))
 });
 
 
@@ -99,7 +99,7 @@ router.get("/userInfoByUsername/:username", async function (req: any, res: any) 
 
   await instagramService.getUserInfoByUsername(username)
     .then((data: any) => res.json(data))
-    .catch((err: any) => res.json({ message: "Given username infos could not retrieved.", status: false }));
+    .catch((err: any) => res.json({ message: "Girmiş olduğunuz kullanıcı adına sahip herhangi bir bilgi bulunamamıştır. Analizine ulaşmak istediğiniz hesabın açık hesap olduğundan ve bir kulllanıcıya karşılık geldiğinden emin olarak tekrar deneyiniz.", status: false }));
 });
 
 module.exports = router;

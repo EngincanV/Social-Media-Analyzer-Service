@@ -60,7 +60,7 @@ const getUserDailyInstagramStatsAsync = async (userId: number) => {
                         dailyInstagramStats.push({ date: newDate, followerCount: x.FollowerCount });
                     });
 
-                    resolve(dailyInstagramStats);
+                    resolve({ success: true, dailyInstagramStats });
                 });
             }
             db.end((err: any) => {
@@ -100,7 +100,7 @@ const getUserWeeklyInstagramStatsAsync = async (userId: number) => {
                         }
                     });
 
-                    resolve(weeklyInstagramStats);
+                    resolve({ success: true, weeklyInstagramStats });
                 });
             }
             db.end((err: any) => {
@@ -138,7 +138,7 @@ const getUserMonthlyInstagramStatsAsync = async (userId: number) => {
                         }
                     });
 
-                    resolve(monthlyInstagramStats);
+                    resolve({ success: true, monthlyInstagramStats });
                 });
             }
             db.end((err: any) => {
@@ -179,7 +179,7 @@ const getUserYearlyInstagramStatsAsync = async (userId: number) => {
                         }
                     });
 
-                    resolve(yearlyInstagramStats);
+                    resolve({ success: true, yearlyInstagramStats });
                 });
             }
             db.end((err: any) => {

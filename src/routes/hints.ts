@@ -23,10 +23,10 @@ router.get("/get-random-hint", async (req: any, res: any) => {
         else {
             db.query(sql, async (err: any, results: any) => {
                 if (err || results.length == 0) {
-                    res.send({ 'success': 'false', 'message': 'Could not connect db' });
+                    res.send({ success: false, message: 'Veritabanına bağlanırken bir sorunla karşılaşıldı. Lütfen daha sonra tekrar deneyiniz.' });
                 }
                 else {
-                    res.send(results[0]);
+                    res.send({ success: true, results: results[0] });
                 }
             });
         }

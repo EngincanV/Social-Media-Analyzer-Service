@@ -19,12 +19,14 @@ router.get("/", async (req: any, res: any) => {
     const userId: number = getUserId(token);
 
     if (userId === 0) {
-        res.end({ status: false, message: "Kullanıcı bulunamadı." });
+        res.end({ success: false, message: "Kullanıcı bulunamadı." });
     }
 
-    const userInfo = await getUserInfoByUserIdAsync(userId);
-
-    res.json({ userInfo });
+    await getUserInfoByUserIdAsync(userId)
+        .then((data: any) => {
+            res.json({ success: true, userInfo: data })
+        })
+        .catch((err) => res.json({ success: false, error: err }));
 });
 
 /**
@@ -41,18 +43,18 @@ router.post("/change-password", async (req: any, res: any) => {
     const { password, newPassword } = req.body;
 
     if (userId === 0) {
-        res.end({ status: false, message: "Kullanıcı bulunamadı." });
+        res.end({ success: false, message: "Kullanıcı bulunamadı." });
     }
 
     const isPasswordCorrect: boolean = await isUserPasswordCorrectAsync(password, userId);
 
     if (!isPasswordCorrect) {
-        res.json({ status: false, message: "Girdiğinizi şifre yanlış." });
+        res.json({ success: false, message: "Girmiş olduğunuz şifre yanlış. Lütfen şifreyi doğru giriniz." });
     }
 
     await changePasswordAsync(newPassword, userId)
-        .then(() => res.json({ status: true, message: "Şifreniz başarıyla değiştirilmiştir." }))
-        .catch((err) => res.json({ status: false, error: err }));
+        .then(() => res.json({ success: true, message: "Şifreniz başarıyla değiştirilmiştir." }))
+        .catch((err) => res.json({ success: false, error: err }));
 });
 
 /**
@@ -72,26 +74,26 @@ router.post("/edit", async (req: any, res: any) => {
     const { password, firstname, surname, email } = req.body;
 
     if (userId === 0) {
-        res.end({ status: false, message: "Kullanıcı bulunamadı." });
+        res.end({ success: false, message: "Kullanıcı bulunamadı." });
     }
 
     const isPasswordCorrect: boolean = await isUserPasswordCorrectAsync(password, userId);
 
     if (!isPasswordCorrect) {
-        res.json({ status: false, message: "Girmiş olduğunuz şifre doğru değildir." });
+        res.json({ success: false, message: "Girmiş olduğunuz şifre doğru değildir." });
     }
     
     if (currentEmail !== email) {
         var isEmailInUse: boolean = await isEmailExistAsync(email);
 
         if (isEmailInUse) {
-            res.json({ status: false, message: "Girmiş olduğunuz email adresi başka bir kullanıcı tarafından kullanılmaktadır. Lütfen farklı bir email adresi giriniz." });
+            res.json({ success: false, message: "Girmiş olduğunuz email adresi başka bir kullanıcı tarafından kullanılmaktadır. Lütfen farklı bir email adresi giriniz." });
         }
     }
 
     await updateUserInfosAsync(firstname, surname, email, userId)
-        .then(() => res.json({ status: true, message: "Kullanıcı bilgileri başarılı bir şekilde değiştirilmiştir." }))
-        .catch(err => res.json({ status: false, error: err }));
+        .then(() => res.json({ success: true, message: "Kullanıcı bilgileri başarılı bir şekilde değiştirilmiştir." }))
+        .catch(err => res.json({ success: false, error: err }));
 });
 
 const isUserPasswordCorrectAsync = async (password: string, userId: number): Promise<boolean> => {
@@ -99,7 +101,7 @@ const isUserPasswordCorrectAsync = async (password: string, userId: number): Pro
 
     let sqlCommand: string = `SELECT * FROM users WHERE id = ${userId}`;
 
-    return await new Promise((resolve: any, reject: any) => {
+    return new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
                 db.end((err: any) => {
@@ -288,10 +290,10 @@ async function isEmailExistAsync(email: string): Promise<any> {
     return await new Promise((resolve: any, reject: any) => {
         db.connect((err: any) => {
             if (err) {
-                console.log('Cannot connect database');
                 db.end((err: any) => {
                     if (err) reject(err);
                 });
+
                 reject(err);
             }
 
@@ -303,6 +305,7 @@ async function isEmailExistAsync(email: string): Promise<any> {
                 db.end((err: any) => {
                     if (err) reject(err);
                 });
+
                 resolve(isEmailExist);
             });
 

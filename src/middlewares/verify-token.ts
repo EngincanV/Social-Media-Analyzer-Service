@@ -9,8 +9,8 @@ const verifyToken = (req: any, res: any, next: any) => {
         jwt.verify(token, jwtConfig.secretKey, (err: any, decoded: any) => {
             if(err) {
                 res.json({
-                    status: false,
-                    message: 'Failed to authenticate token'
+                    success: false,
+                    message: 'Token doğrulanırken bir hata meydana geldi.'
                 });
             }
             else {
@@ -22,8 +22,8 @@ const verifyToken = (req: any, res: any, next: any) => {
     }
     else {
         res.json({
-            status: false,
-            message: 'No token provided.'
+            success: false,
+            message: 'Token bulunamadı. Ilgili servislere erişebilmek için lütfen giriş yapın.'
         });
     }
 };
