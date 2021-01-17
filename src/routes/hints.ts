@@ -1,8 +1,6 @@
 import express from "express";
-const mysql = require("mysql"); 
 
-import dbConfig from "../config/dbconfig";
-
+const pool = require("../config/dbConnection");
 const router = express();
 
 /**
@@ -12,21 +10,21 @@ const router = express();
  * @returns {Error}  400 - Unexpected error
  */
 router.get("/get-random-hint", async (req: any, res: any) => {
-    const db = mysql.createConnection(dbConfig);
-
     let sql: string = `SELECT * FROM Hints ORDER BY RAND() LIMIT 1`;
     
-    db.connect((err: any) => {
+    pool.getConnection((err: any, connection: any) => {
         if (err) {
             throw err;
         }
         else {
-            db.query(sql, async (err: any, results: any) => {
+            connection.query(sql, async (err: any, results: any) => {
                 if (err || results.length == 0) {
+                    connection.release();
                     res.send({ success: false, message: 'Veritabanına bağlanırken bir sorunla karşılaşıldı. Lütfen daha sonra tekrar deneyiniz.' });
                 }
                 else {
                     res.send({ success: true, results: results[0] });
+                    connection.release();
                 }
             });
         }

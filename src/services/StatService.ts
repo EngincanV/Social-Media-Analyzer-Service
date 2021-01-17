@@ -1,51 +1,47 @@
-import dbConfig from "../config/dbconfig";
 const { getUserInstagramStats } = require("./InstagramService");
 const { formatDate } = require("../helpers/dateHelper");
 
-const mysql = require("mysql");
+const pool = require("../config/dbConnection");
 
 const saveUserInstagramStatsAsync = async (userId: number, username: string, password: string) => {
-    const db = mysql.createConnection(dbConfig);
     const userInfo = await getUserInstagramStats(username, password);
     const { followerCount, followingCount, postCount } = userInfo;
 
     const sqlCommand: string = `INSERT INTO stats (userId, FollowerCount, FollowingCount, PostCount) VALUES (${userId}, ${followerCount}, ${followingCount}, ${postCount})`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any) => {
+                connection.query(sqlCommand, (err: any, results: any) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
 
                     resolve(results);
                 });
             }
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
+
+            connection.release();
         })
     })
 }
 
 const getUserDailyInstagramStatsAsync = async (userId: number) => {
-    const db = mysql.createConnection(dbConfig);
-
     const sqlCommand: string = `SELECT Date, FollowerCount FROM Stats WHERE userId = ${userId} and DATE(Date) = CURDATE()`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any[]) => {
+                connection.query(sqlCommand, (err: any, results: any[]) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
 
@@ -63,27 +59,24 @@ const getUserDailyInstagramStatsAsync = async (userId: number) => {
                     resolve({ success: true, dailyInstagramStats });
                 });
             }
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
+
+            connection.release();
         })
     })
 }
 
 const getUserWeeklyInstagramStatsAsync = async (userId: number) => {
-    const db = mysql.createConnection(dbConfig);
-
     const sqlCommand: string = `SELECT Date, FollowerCount FROM Stats WHERE userId = ${userId} and WEEKOFYEAR(date) = WEEKOFYEAR(NOW()) ORDER BY Date desc`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any[]) => {
+                connection.query(sqlCommand, (err: any, results: any[]) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
 
@@ -103,27 +96,24 @@ const getUserWeeklyInstagramStatsAsync = async (userId: number) => {
                     resolve({ success: true, weeklyInstagramStats });
                 });
             }
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
+            
+            connection.release();
         })
     })
 }
 
 const getUserMonthlyInstagramStatsAsync = async (userId: number) => {
-    const db = mysql.createConnection(dbConfig);
-
     const sqlCommand: string = `SELECT FollowerCount, WEEK(date) as Week FROM Stats WHERE userId = ${userId} and MONTH(date) = MONTH(NOW()) ORDER BY Date desc`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any[]) => {
+                connection.query(sqlCommand, (err: any, results: any[]) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
 
@@ -141,27 +131,24 @@ const getUserMonthlyInstagramStatsAsync = async (userId: number) => {
                     resolve({ success: true, monthlyInstagramStats });
                 });
             }
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
+            
+            connection.release();
         })
     })
 }
 
 const getUserYearlyInstagramStatsAsync = async (userId: number) => {
-    const db = mysql.createConnection(dbConfig);
-
     const sqlCommand: string = `SELECT Date, FollowerCount FROM Stats WHERE userId = ${userId} and YEAR(date) = YEAR(NOW()) ORDER BY Date desc`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any[]) => {
+                connection.query(sqlCommand, (err: any, results: any[]) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
 
@@ -182,10 +169,8 @@ const getUserYearlyInstagramStatsAsync = async (userId: number) => {
                     resolve({ success: true, yearlyInstagramStats });
                 });
             }
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
+            
+            connection.release();
         })
     })
 }

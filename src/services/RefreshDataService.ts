@@ -1,6 +1,6 @@
-import dbConfig from "../config/dbconfig";
 import statService from "./StatService";
-const mysql = require("mysql");
+
+const pool = require("../config/dbConnection");
 
 async function refreshDataManagerAsync(userId: number, igUsername: string, igPassword: string) {
     const isRefreshDataExist = await isRefreshDataExistInCurrentDayAsync(userId);
@@ -27,59 +27,49 @@ async function refreshDataManagerAsync(userId: number, igUsername: string, igPas
 }
 
 async function addRefreshDataAsync(userId: number, dailyRefreshCount: number) {
-    const db = mysql.createConnection(dbConfig);
     var date = new Date();
     var currentDate = date.toISOString().split("T")[0];
 
     const sqlCommand: string = `INSERT INTO refreshDatas (userId, dailyRefreshCount, date) VALUES (${userId}, ${dailyRefreshCount}, "${currentDate}")`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any) => {
+                connection.query(sqlCommand, (err: any, results: any) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
 
                     resolve(results);
                 });
             }
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
         })
     })
 }
 
 async function getRefreshDataCountByUserIdAsync(userId: number) {
-    const db = mysql.createConnection(dbConfig);
     const sqlCommand: string = `SELECT st.refreshCount FROM subscriptions s inner join subscriptiontypes st on s.subscriptionTypeId = st.id WHERE s.userId = ${userId}`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any) => {
+                connection.query(sqlCommand, (err: any, results: any) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
                     else {
-                        console.log(results)
                         const refreshCount = results[0].refreshCount;
-                        console.log(refreshCount);
 
                         resolve(refreshCount);
                     }
-                });
-                db.end((err: any) => {
-                    if (err)
-                        reject(err);
                 });
             }
         })
@@ -87,24 +77,23 @@ async function getRefreshDataCountByUserIdAsync(userId: number) {
 }
 
 async function isRefreshDataExistInCurrentDayAsync(userId: number) {
-    const db = mysql.createConnection(dbConfig);
     var date = new Date();
     var currentDate = date.toISOString().split("T")[0];
 
     const sqlCommand: string = `SELECT * FROM refreshDatas WHERE userId = ${userId} and date = "${currentDate}"`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any) => {
+                connection.query(sqlCommand, (err: any, results: any) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
                     else {
-                        console.log("is record exist: " + results.length)
                         if (results.length <= 0) {
                             resolve(false);
                         }
@@ -114,29 +103,25 @@ async function isRefreshDataExistInCurrentDayAsync(userId: number) {
                     }
                 });
             }
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
         })
     })
 }
 
 async function decreaseRefreshDataCountAsync(userId: number) {
-    const db = mysql.createConnection(dbConfig);
     var date = new Date();
     var currentDate = date.toISOString().split("T")[0];
 
     const sqlCommand: string = `SELECT dailyRefreshCount FROM refreshDatas WHERE userId = ${userId} and date = "${currentDate}"`;
 
-    return new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+    return await new Promise((resolve: any, reject: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
             else {
-                db.query(sqlCommand, async (err: any, results: any) => {
+                connection.query(sqlCommand, async (err: any, results: any) => {
                     if (err) {
+                        connection.release();
                         reject(err);
                     }
                     else {
@@ -152,33 +137,29 @@ async function decreaseRefreshDataCountAsync(userId: number) {
                     }
                 });
             }
-
-            db.end((err: any) => {
-                if (err)
-                    reject(err);
-            });
         })
     })
 
 }
 
-function updateRefreshDataCountAsync(userId: number, date: string, dailyRefreshCount: number) {
-    const db = mysql.createConnection(dbConfig);
-
+async function updateRefreshDataCountAsync(userId: number, date: string, dailyRefreshCount: number) {
     const sqlCommand: string = `UPDATE refreshDatas SET dailyRefreshCount = ${dailyRefreshCount} WHERE userId = ${userId} and date = "${date}"`;
 
-    db.connect((err: any) => {
-        if (err) {
-            throw err;
-        }
-        else {
-            db.query(sqlCommand, (err: any, results: any) => {
-                if (err) {
-                    throw err;
-                }
-            });
-        }
-    })
+    return await new Promise((resolve: any, reject: any) => {
+        pool.getConnection((err: any, connection: any) => {
+            if (err) {
+                reject(err);
+            }
+            else {
+                connection.query(sqlCommand, (err: any, results: any) => {
+                    if (err) {
+                        connection.release();
+                        reject(err);
+                    }
+                });
+            }
+        })
+    });
 }
 
 export default { refreshDataManagerAsync };

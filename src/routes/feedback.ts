@@ -1,8 +1,6 @@
 import express from "express";
-const mysql = require("mysql");
-
-import dbConfig from "../config/dbconfig";
 const { getUserId } = require("../helpers/userInfo");
+const pool = require("../config/dbConnection");
 
 const router = express();
 router.use(express.json());
@@ -17,7 +15,6 @@ router.use(express.urlencoded({ extended: true }));
  * @returns {Error}  400 - Unexpected error
  */
 router.post("/add", async (req: any, res: any) => {
-    const db = mysql.createConnection(dbConfig);
     const token: string = req.headers['authorization'];
     const userId: number = getUserId(token);
 
@@ -25,7 +22,7 @@ router.post("/add", async (req: any, res: any) => {
         res.end({ success: false, message: "Kullanıcı bulunamadı." });
     }
 
-    db.connect((err: any) => {
+    pool.getConnection((err: any, connection: any) => {
         if (err) {
             throw err;
         }
@@ -33,17 +30,15 @@ router.post("/add", async (req: any, res: any) => {
             const { topic, message } = req.body;
             let sqlCommand: string = `INSERT INTO feedbacks (userId, topic, message) VALUES ("${userId}", "${topic}","${message}")`;
 
-            db.query(sqlCommand, (err: any, results: any) => {
+            connection.query(sqlCommand, (err: any, results: any) => {
                 if (err) {
+                    connection.release();
                     throw err;
                 }
                 else {
                     res.send({ success: true, results });
+                    connection.release();
                 }
-            });
-
-            db.end((err: any) => {
-                if (err) throw err;
             });
         }
     });

@@ -15,7 +15,6 @@ const instagramService = require("../services/instagramService");
  */
 router.post('/user-info', async function (req: any, res: any) {
   const { username, password } = req.body;
-
   const token: string = req.headers['authorization'];
   const userId: number = getUserId(token);
 
@@ -36,9 +35,9 @@ router.post('/user-info', async function (req: any, res: any) {
  */
 router.post('/followers', async function (req: any, res: any) {
   const { username, password } = req.body;
-
   const token: string = req.headers['authorization'];
   const userId: number = getUserId(token);
+  
   await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.followerInfo(username, password)
@@ -56,9 +55,9 @@ router.post('/followers', async function (req: any, res: any) {
  */
 router.post("/followings", async function (req: any, res: any) {
   const { username, password } = req.body;
-
   const token: string = req.headers['authorization'];
   const userId: number = getUserId(token);
+  
   await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.followingInfo(username, password)
@@ -76,9 +75,9 @@ router.post("/followings", async function (req: any, res: any) {
  */
 router.post("/not-followed-users", async function (req: any, res: any) {
   const { username, password } = req.body;
-
   const token: string = req.headers['authorization'];
   const userId: number = getUserId(token);
+  
   await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.notToBeFollowed(username, password)

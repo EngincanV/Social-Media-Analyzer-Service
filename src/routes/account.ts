@@ -75,11 +75,11 @@ router.post('/register', async (req, res, next) => {
  * @returns {Error}  400 - Unexpected error
  */
 router.post("/add-profile-photo", upload.single("profilePhoto"), async (req: any, res: any) => {
+    const { password } = req.body;
     const token: string = req.headers['authorization'];
     const userId: number = getUserId(token);
-    let profilePhoto: string = req.file.path.replace("\\", "/");
-    const { password } = req.body;
 
+    let profilePhoto: string = req.file.path.replace("\\", "/");
     const addUserProfilePhoto = await addProfilePhoto(userId, password, profilePhoto);
 
     res.json(addUserProfilePhoto);
