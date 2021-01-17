@@ -2,17 +2,20 @@ import { IgApiClient } from "instagram-private-api";
 const Instagram = require("instagram-web-api");
 
 const getUserInfo = async (username: string, password: string) => {
-    // const ig = new IgApiClient();
-    // ig.state.generateDevice(username);
+    const ig = new IgApiClient();
+    ig.state.generateDevice(username);
     
-    // const auth = await ig.account.login(username, password);
-    // const infos = await ig.user.info(auth.pk);
+    const auth = await ig.account.login(username, password);
+    const infos = await ig.user.info(auth.pk);
+
+    return infos;
 
     // var resultObj = { userInfo: infos, totalLikeCount: 0, totalCommentCount: 0 };
     // const client = new Instagram({ username, password });
     // await client.login({ username, password });
 
     // const result = await client.getUserByUsername({ username });
+    // console.log(result)
     // var posts: any[] = result.edge_owner_to_timeline_media.edges;
 
     // posts.forEach(post => {
@@ -20,28 +23,25 @@ const getUserInfo = async (username: string, password: string) => {
     //     resultObj.totalCommentCount += post.node.edge_media_to_comment.count;
     // });
 
-    var ig = new Instagram({username, password });
-    var user = await ig.login({ username, password });
-    const userId = user.userId;
-
-    const result = await ig.getFollowers({ userId });
-
-    return result;
+    // return resultObj;
 };
 
 const followerInfo = async (username: string, password: string) => {
     const ig = new IgApiClient();
     ig.state.generateDevice(username);
+    let iterate: number = 0;
     
     const auth = await ig.account.login(username, password);
+    const infos = await ig.user.info(auth.pk);
+    const followerCount = infos.follower_count;
     const followers = ig.feed.accountFollowers(auth.pk);
-    const items = await followers.items();
+    let items: any = [];
 
-    followers.items$.subscribe(
-        followersInfo => console.log(followersInfo),
-        error => console.error(error),
-        () => console.log('Complete!'),
-      );
+    while(iterate <= followerCount) {
+        let followerItems = await followers.items();
+        items.push(followerItems);
+        iterate += followerItems.length;
+    }
 
     return items;
 };
@@ -49,10 +49,19 @@ const followerInfo = async (username: string, password: string) => {
 const followingInfo = async (username: string, password: string) => {
     const ig = new IgApiClient();
     ig.state.generateDevice(username);
+    let iterate: number = 0;
     
     const auth = await ig.account.login(username, password);
+    const infos = await ig.user.info(auth.pk);
+    const followingCount = infos.following_count;
     const followings = ig.feed.accountFollowing(auth.pk);
-    const items = await followings.items();
+    const items: any = [];
+
+    while(iterate <= followingCount) {
+        let followingItems = await followings.items();
+        items.push(followingItems);
+        iterate += followingItems.length;
+    }
 
     return items;
 }

@@ -18,10 +18,11 @@ router.post('/user-info', async function (req: any, res: any) {
   const token: string = req.headers['authorization'];
   const userId: number = getUserId(token);
 
-  await refreshDataService.refreshDataManagerAsync(userId, username, password);
+  await refreshDataService.refreshDataManagerAsync(userId, username, password)
+    .catch((err: any) => { console.log("hata") })
 
   await instagramService.getUserInfo(username, password)
-    .then((data: object) => res.json(data))
+    .then((data: object) => res.json({ success: true, data }))
     .catch((err: any) => res.json({ err: err }));
 });
 
