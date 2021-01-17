@@ -1,35 +1,24 @@
-const mysql = require("mysql");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { addUserToSubscription } = require("../services/SubscriptionService");
 
-import dbConfig from "../config/dbconfig";
 import jwtConfig from "../config/jwt-secret-key";
 import hashConfig from "../config/hashconfig";
 
-const login = async (email: string, password: string) => {
-    const db = mysql.createConnection(dbConfig);
+const pool = require("../config/dbConnection");
 
+const login = async (email: string, password: string) => {
     let sql: string = `SELECT * FROM users WHERE email = "${email}"`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
-                db.end((err: any) => {
-                    if (err) 
-                        reject(err);
-                });
-
                 reject(err);
             }
             else {
-                db.query(sql, async (err: any, results: any) => {
+                connection.query(sql, async (err: any, results: any) => {
                     if (err) {
-                        db.end((err: any) => {
-                            if (err) 
-                                reject(err);
-                        })
-
+                        connection.release();
                         resolve({ success: false, message: 'Could not connect db' });
                     }
                     else if (results.length > 0) {
@@ -39,32 +28,20 @@ const login = async (email: string, password: string) => {
 
                         if (isSuccess) {
                             const token: string = jwt.sign({
-                                exp: Math.floor(Date.now() / 1000) + (60 * 60), //1 hour
+                                exp: Math.floor(Date.now() / 1000) + (60 * 60 * 5), //5 hour
                                 data: { id: results[0].id, email: results[0].email }
                             }, jwtConfig.secretKey);
-
-                            db.end((err: any) => {
-                                if (err) 
-                                    reject(err);
-                            })
 
                             resolve({ success: true, token });
                         }
 
-                        db.end((err: any) => {
-                            if (err) reject(err);
-                        })
-
                         resolve({ success: false, message: "Girdiğiniz şifre yanlış, lütfen şifrenizi doğru girdiğinizden emin olun." });
                     }
                     else {
-                        db.end((err: any) => {
-                            if (err)
-                                reject(err);
-                        })
-
                         resolve({ success: false, message: "Kullanıcı bulunamadı." });
                     }
+
+                    connection.release();
                 });
             }
         })
@@ -73,47 +50,32 @@ const login = async (email: string, password: string) => {
 }
 
 const register = async (firstname: string, surname: string, email: string, password: string) => {
-    const db = mysql.createConnection(dbConfig);
-
     var isUserExist: boolean = await isEmailExistAsync(email);
     var hashedPassword: string = await hashPasswordAsync(password);
 
     let sqlCommand: string = `INSERT INTO users (firstname, surname, email, password) VALUES ("${firstname}", "${surname}","${email}","${hashedPassword}")`;
 
     return await new Promise(async (resolve: any, reject: any) => {
-        db.connect((err: any) => {
-            if (err) {
-                db.end((err: any) => {
-                    if (err) reject(err);
-                });
-
+        pool.getConnection((err: any, connection: any) => {
+            if (err || connection === null || connection === undefined) {
                 reject(err);
             }
             else {
                 if (isUserExist) {
-                    db.end((err: any) => {
-                        if (err) reject(err);
-                    });
-
                     resolve({ success: false,  message: "Girmiş olduğunuz email adresi kullanılmaktadır, lütfen farklı bir email adresi giriniz." });
                 }
-                db.query(sqlCommand, async (err: any, results: any) => {
+                connection.query(sqlCommand, async (err: any, results: any) => {
+                    
                     if (err) {
-                        db.end((err: any) => {
-                            if (err) reject(err);
-                        });
-
+                        connection.release();
                         resolve({ success: false, message: 'Bir hata oluştu lütfen daha sonra tekrar deneyiniz.' });
                     }
                     else {
                         var userId = results.insertId;
                         await addUserToSubscription(userId);
 
-                        db.end((err: any) => {
-                            if (err) reject(err);
-                        });
-
                         resolve({ success: true, results });
+                        connection.release();
                     }
                 });
             }
@@ -122,9 +84,7 @@ const register = async (firstname: string, surname: string, email: string, passw
 }
 
 const addProfilePhoto = async (userId: number, password: string, profilePhoto: string) => {
-    const db = mysql.createConnection(dbConfig);
-
-    return new Promise(async (resolve: any, reject: any) => {
+    return await new Promise(async (resolve: any, reject: any) => {
         if (userId === 0) {
             resolve({ success: false, message: "Kullanıcı bulunamadı." });
         }
@@ -137,33 +97,23 @@ const addProfilePhoto = async (userId: number, password: string, profilePhoto: s
 
         let sqlCommand: string = `UPDATE users SET profilePhoto = "${profilePhoto}" WHERE id = ${userId}`;
 
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
-                db.end((err: any) => {
-                    if (err) reject(err);
-                });
-
                 reject(err);
             }
             else {
-                db.query(sqlCommand, (err: any, results: any) => {
+                connection.query(sqlCommand, (err: any, results: any) => {
                     if (err) {
-                        db.end((err: any) => {
-                            if (err) reject(err);
-                        });
-
+                        connection.release();
                         resolve({ success: false, message: "Profil fotoğrafı eklerken bir hata meydana geldi. Lütfen daha sonra tekrar deneyiniz." });
                     }
                     else {
-                        db.end((err: any) => {
-                            if (err) reject(err);
-                        });
-
                         resolve({ success: true, results });
                     }
                 });
-
             }
+
+            connection.release();
         })
     });
 }
@@ -187,28 +137,20 @@ const comparePasswordAsync = async (password: string, hash: string): Promise<boo
 }
 
 async function isEmailExistAsync(email: string): Promise<any> {
-    const db = mysql.createConnection(dbConfig);
     let command: string = `SELECT * FROM users WHERE email = "${email}"`;
 
     return await new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
-                console.log('Cannot connect database');
-                db.end((err: any) => {
-                    if (err) reject(err);
-                });
-
                 reject(err);
             }
 
-            db.query(command, (err: any, results: any) => {
-                if (err)
+            connection.query(command, (err: any, results: any) => {
+                if (err) {
                     reject(err);
+                }
 
                 var isEmailExist: boolean = results.length > 0;
-                db.end((err: any) => {
-                    if (err) reject(err);
-                });
 
                 resolve(isEmailExist);
             });
@@ -232,38 +174,22 @@ const hashPasswordAsync = async (password: string): Promise<any> => {
 }
 
 const isUserPasswordCorrectAsync = async (password: string, userId: number): Promise<boolean> => {
-    const db = mysql.createConnection(dbConfig);
-
     let sqlCommand: string = `SELECT * FROM users WHERE id = ${userId}`;
 
-    return new Promise((resolve: any, reject: any) => {
-        db.connect((err: any) => {
+    return await new Promise((resolve: any, reject: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
-                db.end((err: any) => {
-                    if (err)
-                        reject(err);
-                });
-
                 reject(err);
             }
             else {
-                db.query(sqlCommand, async (err: any, results: any) => {
+                connection.query(sqlCommand, async (err: any, results: any) => {
                     if (err) {
-                        db.end((err: any) => {
-                            if (err)
-                                reject(err);
-                        });
-
+                        connection.release();
                         reject(err);
                     }
 
                     const hashedPassword = results[0].password;
                     const isUserPaswordCorrect: boolean = await comparePasswordAsync(password, hashedPassword);
-
-                    db.end((err: any) => {
-                        if (err)
-                            reject(err);
-                    });
 
                     resolve(isUserPaswordCorrect);
                 });
