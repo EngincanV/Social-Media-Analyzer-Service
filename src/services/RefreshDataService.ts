@@ -83,7 +83,7 @@ async function isRefreshDataExistInCurrentDayAsync(userId: number) {
     const sqlCommand: string = `SELECT * FROM refreshDatas WHERE userId = ${userId} and date = "${currentDate}"`;
 
     return await new Promise((resolve: any, reject: any) => {
-        pool.connect((err: any, connection: any) => {
+        pool.getConnection((err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
