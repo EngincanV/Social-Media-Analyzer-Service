@@ -13,8 +13,6 @@ const feedbackRouter = require("./routes/feedback");
 const personalInfoRouter = require("./routes/personalInfo");
 const statsRouter = require("./routes/stats");
 
-const getRawBody = require("raw-body");
-
 const app: any = express();
 const PORT: number = 3000;
 
@@ -26,21 +24,9 @@ expressSwagger(swaggerOptions);
 
 app.use(cors());
 app.use(compression());
-
-app.use(function (req: any, res: any, next: any) {
-    getRawBody(req, {
-        length: req.headers['content-length'],
-        limit: '50mb'
-    }, function (err: any, string: any) {
-        if(err) return next(err);
-
-        req.text = string;
-        next();
-    })
-});
-
 app.use("/uploads", express.static("uploads"));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "50mb" }))
+app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 app.use(cookieParser());
 
 // Authorization Middleware
