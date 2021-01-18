@@ -66,23 +66,24 @@ router.post('/register', async (req, res, next) => {
     res.json(registerUser);
 });
 
-/**
- * @route POST /account/add-profile-photo
- * @group Account - Operations about user
- * @param {string} password
- * @param {string} profilePhoto
- * @returns {object} 200 - An array of user info
- * @returns {Error}  400 - Unexpected error
- */
-router.post("/add-profile-photo", upload.single("profilePhoto"), async (req: any, res: any) => {
-    const { password } = req.body;
-    const token: string = req.headers['authorization'];
-    const userId: number = getUserId(token);
+//TODO: depreciated
+// /**
+//  * @route POST /account/add-profile-photo
+//  * @group Account - Operations about user
+//  * @param {string} password
+//  * @param {string} profilePhoto
+//  * @returns {object} 200 - An array of user info
+//  * @returns {Error}  400 - Unexpected error
+//  */
+// router.post("/add-profile-photo", upload.single("profilePhoto"), async (req: any, res: any) => {
+//     const { password } = req.body;
+//     const token: string = req.headers['authorization'];
+//     const userId: number = getUserId(token);
 
-    let profilePhoto: string = req.file.path.replace("\\", "/");
-    const addUserProfilePhoto = await addProfilePhoto(userId, password, profilePhoto);
+//     let profilePhoto: string = req.file.path.replace("\\", "/");
+//     const addUserProfilePhoto = await addProfilePhoto(userId, password, profilePhoto);
 
-    res.json(addUserProfilePhoto);
-});
+//     res.json(addUserProfilePhoto);
+// });
 
 module.exports = router;
