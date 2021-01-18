@@ -4,10 +4,10 @@ const pool = require("../config/dbConnection");
 
 async function refreshDataManagerAsync(userId: number, igUsername: string, igPassword: string) {
     const isRefreshDataExist = await isRefreshDataExistInCurrentDayAsync(userId);
-
+console.log("exist: " + isRefreshDataExist);
     if (isRefreshDataExist) {
         const refreshDataCount = await decreaseRefreshDataCountAsync(userId);
-
+console.log(refreshDataCount)
         if (refreshDataCount === 0) {
             console.log("you don't any refresh count: " + refreshDataCount);
             return;

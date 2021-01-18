@@ -3,6 +3,7 @@ const createError = require("http-errors") ;
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 const verifyToken = require("./middlewares/verify-token");
+const cors = require("cors");
 
 //routes
 const accountRouter = require("./routes/account");
@@ -21,6 +22,7 @@ const swaggerOptions = require("./config/swaggerconfig");
 //swagger documentation
 expressSwagger(swaggerOptions);
 
+app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));

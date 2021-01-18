@@ -1,31 +1,34 @@
 import { IgApiClient } from "instagram-private-api";
 const Instagram = require("instagram-web-api");
 
+//DONE !
 const getUserInfo = async (username: string, password: string) => {
     const ig = new IgApiClient();
     ig.state.generateDevice(username);
-    
+
     const auth = await ig.account.login(username, password);
+    console.log(auth)
     const infos = await ig.user.info(auth.pk);
 
-    return infos;
+    // return infos;
 
-    // var resultObj = { userInfo: infos, totalLikeCount: 0, totalCommentCount: 0 };
-    // const client = new Instagram({ username, password });
-    // await client.login({ username, password });
+    var resultObj = { userInfo: infos, totalLikeCount: 0, totalCommentCount: 0 };
+    const client = new Instagram({ username, password });
+    await client.login({ username, password });
 
-    // const result = await client.getUserByUsername({ username });
-    // console.log(result)
-    // var posts: any[] = result.edge_owner_to_timeline_media.edges;
+    const result = await client.getUserByUsername({ username });
+    console.log(result)
+    var posts: any[] = result.edge_owner_to_timeline_media.edges;
 
-    // posts.forEach(post => {
-    //     resultObj.totalLikeCount += post.node.edge_liked_by.count;
-    //     resultObj.totalCommentCount += post.node.edge_media_to_comment.count;
-    // });
+    posts.forEach(post => {
+        resultObj.totalLikeCount += post.node.edge_liked_by.count;
+        resultObj.totalCommentCount += post.node.edge_media_to_comment.count;
+    });
 
-    // return resultObj;
+    return resultObj;
 };
 
+//DONE !
 const followerInfo = async (username: string, password: string) => {
     const ig = new IgApiClient();
     ig.state.generateDevice(username);
@@ -46,6 +49,7 @@ const followerInfo = async (username: string, password: string) => {
     return items;
 };
 
+//DONE !
 const followingInfo = async (username: string, password: string) => {
     const ig = new IgApiClient();
     ig.state.generateDevice(username);
@@ -66,27 +70,24 @@ const followingInfo = async (username: string, password: string) => {
     return items;
 }
 
+//DONE !
 const notToBeFollowed = async (username: string, password: string) => {
     // const ig = new IgApiClient();
     // ig.state.generateDevice(username);
-
-    // const auth = await ig.account.login(username, password);
-    // const followers = ig.feed.accountFollowers(auth.pk);
-    // const followersArr = await followers.items();
     
-    // const followings = ig.feed.accountFollowing(auth.pk);
-    // const followingsArr = await followings.items();
-    
-    // let notToBeFollowedUsers: any[] = [];
+    // const followers: any[] = await followerInfo(username, password);
+    // const followings: any[] = await followingInfo(username, password);
+    // console.log("followers count: " + followers.length);
+    // console.log("followings count: " + followings.length);
+    // const notToBeFollowed: any = [];
 
-    // followersArr.forEach((value) => {
-    //     if(followingsArr.find(x => x.username == value.username) === undefined) {
-    //         notToBeFollowedUsers.push(value);
+    // followings.forEach(following => {
+    //     if(followers.find(x => x.username == following.username) === undefined) {
+    //         notToBeFollowed.push(following);
     //     }
-    // })
+    // });
 
-    // return notToBeFollowedUsers;
-
+    // return notToBeFollowed;
     var ig = new Instagram({username, password });
     var user = await ig.login({ username, password });
     const userId = user.userId;
@@ -104,66 +105,21 @@ const notToBeFollowed = async (username: string, password: string) => {
     return notToBeFollowedUsers;
 };
 
-interface IUserInfo {
-    bio: string;
-    followers_count: number;
-    followings_count: number;
-    full_name: string;
-    userId: number;
-    is_private: boolean;
-    profile_pic_url: string;
-    post_count: number;
-    notToBeFollowed: any[];
-};
-
+//DONE !
 const getUserInfoByUsername = async (searchUsername: string) => {
-    const USERNAME = "myprojectaccount";
-    const PASSWORD = "s123456789.";
+     const ig = new IgApiClient();
+    ig.state.generateDevice(searchUsername);
 
-    const client = new Instagram({ username: USERNAME, password: PASSWORD });
-    let userInfo: IUserInfo = { bio: "", followers_count: 0, followings_count: 0, full_name: "", userId: 0, is_private: false, profile_pic_url: "", notToBeFollowed: [], post_count: 0 };
-    let notToBeFollowedUsers: any = [];
+    const auth = await ig.account.login("productstockmanagement", "qwertY12@34");
+    const userId = await ig.user.getIdByUsername(searchUsername); 
+    const infos = await ig.user.info(userId);
 
-    await client.login(USERNAME, PASSWORD); 
-
-    await client.getUserByUsername({ username: searchUsername })
-        .then(({ biography, edge_followed_by, edge_follow, full_name, id, is_private, profile_pic_url, edge_owner_to_timeline_media }: any) => {
-            userInfo = {
-                bio: biography,
-                followers_count: edge_followed_by.count,
-                followings_count: edge_follow.count,
-                full_name,
-                userId: id,
-                is_private,
-                profile_pic_url,
-                post_count: edge_owner_to_timeline_media.count,
-                notToBeFollowed: []
-            };
-        });
-
-    // const userId: string = userInfo.userId.toString();
-    
-    // const followings = await client.getFollowings({ userId })
-    //     .then((res: any) => res.data);
-
-    // const followers = await client.getFollowers({ userId })
-    //     .then((res: any) => res.data);
-
-    // notToBeFollowedUsers = followings;
-
-    // for (let i = 0; i < followings.length; i++) {
-    //     for (let j = 0; j < followers.length; j++) {
-    //         if (followings[i].id === followers[j].id) {
-    //             notToBeFollowedUsers.splice(i, 1);
-    //         }
-    //     }
-    // }
-
-    userInfo.notToBeFollowed = notToBeFollowedUsers;
-
+    const { username, full_name, is_verified, media_count, follower_count, following_count, biography, total_igtv_videos,category, hd_profile_pic_versions } = infos;
+    const userInfo = { username, full_name, is_verified, postCount: media_count, follower_count, following_count, biography, total_igtv_videos, category, photo: hd_profile_pic_versions[0].url };
     return userInfo;
 };
 
+//DONE !
 const getUserInstagramStats = async (username: string, password: string) => {
     const ig = new IgApiClient();
     ig.state.generateDevice(username);
