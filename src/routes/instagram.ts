@@ -18,10 +18,11 @@ router.post('/user-info', async function (req: any, res: any) {
   const token: string = req.headers['authorization'];
   const userId: number = getUserId(token);
 
-  await refreshDataService.refreshDataManagerAsync(userId, username, password);
+  await refreshDataService.refreshDataManagerAsync(userId, username, password)
+    .catch((err: any) => res.json({ success: false, error: err }));
 
   await instagramService.getUserInfo(username, password)
-    .then((data: object) => res.json(data))
+    .then((data: object) => res.json({ success: true, data }))
     .catch((err: any) => res.json({ err: err }));
 });
 
@@ -41,7 +42,7 @@ router.post('/followers', async function (req: any, res: any) {
   await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.followerInfo(username, password)
-    .then((data: object) => res.json(data));
+    .then((data: object) => res.json({ success: true, data }));
 });
 
 
@@ -61,7 +62,7 @@ router.post("/followings", async function (req: any, res: any) {
   await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.followingInfo(username, password)
-    .then((data: object) => res.json(data));
+    .then((data: object) => res.json({ success: true, data }));
 });
 
 
@@ -81,7 +82,7 @@ router.post("/not-followed-users", async function (req: any, res: any) {
   await refreshDataService.refreshDataManagerAsync(userId, username, password);
 
   await instagramService.notToBeFollowed(username, password)
-    .then((data: any) => res.json(data))
+    .then((data: any) => res.json({ success: true, data }))
     .catch((err: any) => res.json({ message: "Lütfen daha sonra tekrar deneyiniz." }))
 });
 
@@ -95,10 +96,10 @@ router.post("/not-followed-users", async function (req: any, res: any) {
  */
 router.get("/userInfoByUsername/:username", async function (req: any, res: any) {
   const { username } = req.params;
-
+  
   await instagramService.getUserInfoByUsername(username)
-    .then((data: any) => res.json(data))
-    .catch((err: any) => res.json({ message: "Girmiş olduğunuz kullanıcı adına sahip herhangi bir bilgi bulunamamıştır. Analizine ulaşmak istediğiniz hesabın açık hesap olduğundan ve bir kulllanıcıya karşılık geldiğinden emin olarak tekrar deneyiniz.", status: false }));
+    .then((data: any) => res.json({ success: true, data }))
+    .catch((err: any) => res.json({ success: false, message: "Girmiş olduğunuz kullanıcı adına sahip herhangi bir bilgi bulunamamıştır. Analizine ulaşmak istediğiniz hesabın açık hesap olduğundan ve bir kulllanıcıya karşılık geldiğinden emin olarak tekrar deneyiniz." }));
 });
 
 module.exports = router;
