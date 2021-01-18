@@ -87,6 +87,7 @@ router.post("/change-password", async (req: any, res: any) => {
  * @param {string} firstname
  * @param {string} surname
  * @param {string} email
+ * @param {string} profilePhoto
  * @returns {object} 200 - An array of user info
  * @returns {Error}  400 - Unexpected error
  */
@@ -94,7 +95,7 @@ router.post("/edit", async (req: any, res: any) => {
     const token: string = req.headers['authorization'];
     const userId: number = getUserId(token);
     const currentEmail: string = getUserEmail(token);
-    const { password, firstname, surname, email } = req.body;
+    const { password, firstname, surname, email, profilePhoto } = req.body;
 
     if (userId === 0) {
         res.end({ success: false, message: "Kullanıcı bulunamadı." });
@@ -114,7 +115,7 @@ router.post("/edit", async (req: any, res: any) => {
         }
     }
 
-    await updateUserInfosAsync(firstname, surname, email, userId)
+    await updateUserInfosAsync(firstname, surname, email, userId, profilePhoto)
         .then(() => res.json({ success: true, message: "Kullanıcı bilgileri başarılı bir şekilde değiştirilmiştir." }))
         .catch(err => res.json({ success: false, error: err }));
 });
@@ -199,14 +200,14 @@ const hashPasswordAsync = async (password: string): Promise<any> => {
     return hashedPassword;
 }
 
-const updateUserInfosAsync = async (firstname: string, surname: string, email: string, userId: number) => {
+const updateUserInfosAsync = async (firstname: string, surname: string, email: string, userId: number, profilePhoto: string) => {
     return await new Promise((resolve: any, reject: any) => {
         pool.getConnection(async (err: any, connection: any) => {
             if (err) {
                 reject(err);
             }
 
-            let sqlCommand: string = `UPDATE users SET firstname = "${firstname}", surname = "${surname}", email = "${email}" WHERE id=${userId}`;
+            let sqlCommand: string = `UPDATE users SET firstname = "${firstname}", surname = "${surname}", email = "${email}", profilePhoto = "${profilePhoto}" WHERE id=${userId}`;
 
             connection.query(sqlCommand, async (err: any, results: any) => {
                 if (err) {
