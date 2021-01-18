@@ -25,6 +25,7 @@ expressSwagger(swaggerOptions);
 app.use(cors());
 app.use(compression());
 app.use(express.json());
+app.use(express.bodyParser({ limit: '50mb' }));
 app.use("/uploads", express.static("uploads"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
