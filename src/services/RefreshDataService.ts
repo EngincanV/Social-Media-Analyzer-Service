@@ -5,6 +5,7 @@ const pool = require("../config/dbConnection");
 async function refreshDataManagerAsync(userId: number, igUsername: string, igPassword: string) {
     const isRefreshDataExist = await isRefreshDataExistInCurrentDayAsync(userId);
 console.log("exist: " + isRefreshDataExist);
+
     if (isRefreshDataExist) {
         const refreshDataCount = await decreaseRefreshDataCountAsync(userId);
 console.log(refreshDataCount)
@@ -135,6 +136,8 @@ async function decreaseRefreshDataCountAsync(userId: number) {
 
                         resolve(dailyRefreshCount);
                     }
+
+                    connection.release();
                 });
             }
         })
@@ -157,6 +160,8 @@ async function updateRefreshDataCountAsync(userId: number, date: string, dailyRe
                         reject(err);
                     }
                 });
+
+                resolve(true);
             }
         })
     });
