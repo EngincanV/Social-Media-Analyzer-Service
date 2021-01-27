@@ -22,6 +22,6 @@ module.exports = {
             }
         }
     },
-    basedir: path.resolve("./"), //root directory
+    basedir: path.resolve("./"), 
     files: ['./routes/*.ts']
   };

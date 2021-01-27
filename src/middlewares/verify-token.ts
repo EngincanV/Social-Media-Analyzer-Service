@@ -14,7 +14,6 @@ const verifyToken = (req: any, res: any, next: any) => {
                 });
             }
             else {
-                //payload
                 req.decode = decoded;
                 next();
             }
