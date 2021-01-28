@@ -1,10 +1,11 @@
 import express from "express";
 const { getUserId } = require("../helpers/userInfo");
-const pool = require("../config/dbConnection");
 
 const router = express();
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
+
+const { addNewFeedback } = require("../services/FeedbackService");
 
 /**
  * @route POST /api/feedback/add
@@ -17,32 +18,15 @@ router.use(express.urlencoded({ extended: true }));
 router.post("/add", async (req: any, res: any) => {
     const token: string = req.headers['authorization'];
     const userId: number = getUserId(token);
+    const { topic, message } = req.body;
 
     if (userId === 0) {
         res.end({ success: false, message: "Kullanıcı bulunamadı." });
     }
 
-    pool.getConnection((err: any, connection: any) => {
-        if (err) {
-            throw err;
-        }
-        else {
-            const { topic, message } = req.body;
-            let sqlCommand: string = `INSERT INTO feedbacks (userId, topic, message) VALUES ("${userId}", "${topic}","${message}")`;
+    var feedback: object = addNewFeedback(userId, topic, message);
 
-            connection.query(sqlCommand, (err: any, results: any) => {
-                if (err) {
-                    connection.release();
-                    throw err;
-                }
-                else {
-                    res.send({ success: true, results });
-                    connection.release();
-                }
-            });
-        }
-    });
-
+    res.json(feedback);
 });
 
 module.exports = router;
